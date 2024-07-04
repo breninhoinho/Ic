@@ -87,13 +87,14 @@ janela.mainloop()
 cores_noc =  [['' for _ in range(dimensao[1])] for _ in range(dimensao[0])]
 
 # gerar grafo para teste
-tam = 9
+tam = 5
 adj_matriz = np.zeros((tam,tam), dtype=int)
 edges = [(0, 1, 5), (0, 3 ,4), (1, 2 ,3), (1, 4 ,2 ), (2, 3, 1), (3, 4, 8)]
 
 # Atualizando a matriz de adjacência com as arestas
 for edge in edges:
     adj_matriz[edge[0]][edge[1]] = edge[2]
+    adj_matriz[edge[1]][edge[0]] = edge[2]
 
 
 #dicionario_posicoes = Random(cores_noc,tam)
@@ -102,7 +103,7 @@ print(cores_noc)
 print(dicionario_posicoes)
 # energia_gasta = Energia_simp(adj_matriz, dicionario_posicoes)
 # print(energia_gasta)
-#print(adj_matriz)
+print(adj_matriz)
 #latencia_gasta = Latencia_simp(cores_noc,adj_matriz,dicionario_posicoes)
 # print(dicionario_posicoes)
 # print(cores_noc[0][0])
