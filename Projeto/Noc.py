@@ -28,6 +28,17 @@ class Noc:
         self.total_pacotes += 1
         self.matriz_roteadores[x][y].buffers["Processador"].append(pacote)
 
+    def rodar (self, vezes):
+        for i in range(vezes): 
+            if i%2==0:
+                for j in range(self.dimensao):
+                    for k in range(self.dimensao):
+                        self.matriz_roteadores[j][k].enviar_pacote_RR()
+            else:
+                for j in range(self.dimensao):
+                    for k in range(self.dimensao):
+                        self.matriz_roteadores[j][k].ajustar_pacotes()
+
     def rodar_simulacao(self, qtd_max_pacotes):
         input = [0]
         paramentro = [0]
@@ -38,9 +49,9 @@ class Noc:
             tempo +=1
             input.append(tempo)
             # criar pacotes
-            self.criar_pacotes_ef(tempo,i)
+            self.criar_pacotes(tempo,i)
             # ver paraemtro
-            media = self.Efficiency(i)
+            media = self.Packet_Lost(i)
             paramentro.append(media)       
         return input, paramentro
         
@@ -62,15 +73,7 @@ class Noc:
     def Total_Throughput(self, qtd_pacotes):
         tempo =qtd_pacotes
         total_rodada = 0
-        for i in range(tempo): 
-            if i%2==0:
-                for j in range(self.dimensao):
-                    for k in range(self.dimensao):
-                        self.matriz_roteadores[j][k].enviar_pacote_RR()
-            else:
-                for j in range(self.dimensao):
-                    for k in range(self.dimensao):
-                        self.matriz_roteadores[j][k].ajustar_pacotes()
+        self.rodar(tempo)
         self.ajusta_pacotes_recebidos()
         total_rodada = self.total_pacotes_recebidos[-1] - self.total_pacotes_recebidos[-2]
         if tempo > self.dimensao*self.dimensao:
@@ -86,16 +89,7 @@ class Noc:
 
     def Packet_Latency(self,i):
         total_rodada = 0
-        for i in range(self.dimensao*4): 
-            if i%2==0:
-                for j in range(self.dimensao):
-                    for k in range(self.dimensao):
-                        self.matriz_roteadores[j][k].enviar_pacote_RR()
-            else:
-                for j in range(self.dimensao):
-                    for k in range(self.dimensao):
-                        self.matriz_roteadores[j][k].ajustar_pacotes()
-        
+        self.rodar(self.dimensao*4)
         for j in range(self.dimensao):
             for k in range(self.dimensao):
                 while len(self.matriz_roteadores[j][k].buffers["Pacotes_entregues"]) > 0:
@@ -111,16 +105,7 @@ class Noc:
 
     def Extra_Delay(self,i):
         total_rodada = 0
-        for i in range(self.dimensao*4): 
-            if i%2==0:
-                for j in range(self.dimensao):
-                    for k in range(self.dimensao):
-                        self.matriz_roteadores[j][k].enviar_pacote_RR()
-            else:
-                for j in range(self.dimensao):
-                    for k in range(self.dimensao):
-                        self.matriz_roteadores[j][k].ajustar_pacotes()
-        
+        self.rodar(self.dimensao*4)
         for j in range(self.dimensao):
             for k in range(self.dimensao):
                 while len(self.matriz_roteadores[j][k].buffers["Pacotes_entregues"]) > 0:
@@ -137,15 +122,7 @@ class Noc:
 
     def Efficiency(self,qtd_pacotes):
 
-        for i in range(120): 
-            if i%2==0:
-                for j in range(self.dimensao):
-                    for k in range(self.dimensao):
-                        self.matriz_roteadores[j][k].enviar_pacote_RR()
-            else:
-                for j in range(self.dimensao):
-                    for k in range(self.dimensao):
-                        self.matriz_roteadores[j][k].ajustar_pacotes()
+        self.rodar(120)
         self.ajusta_pacotes_chegos()
         #self.ajusta_pacote_total()
         print(self.total_pacotes_chegos[-1],self.total_pacotes)
@@ -153,15 +130,7 @@ class Noc:
         
 
     def Packet_Lost(self,i):
-        for i in range(8): 
-            if i%2==0:
-                for j in range(self.dimensao):
-                    for k in range(self.dimensao):
-                        self.matriz_roteadores[j][k].enviar_pacote_RR()
-            else:
-                for j in range(self.dimensao):
-                    for k in range(self.dimensao):
-                        self.matriz_roteadores[j][k].ajustar_pacotes()
+        self.rodar(8)
         self.ajusta_pacotes_perdido()
         return 100*self.total_pacotes_perdidos[-1] / self.total_pacotes
 
@@ -194,8 +163,6 @@ class Noc:
                     soma_rodada += self.matriz_roteadores[j][k].total_pacotes_chegos
             self.total_pacotes_chegos.append(soma_rodada)
 
-    
-
     ...
 
 class Roteador:
@@ -203,8 +170,8 @@ class Roteador:
     max_packets_buffer = 8 # variável global para definir a quantidade máxima de itens
 
     def __init__(self, posicao, noc):
-        self.posicao = posicao
-        self.noc = noc  # armazenando a instância de Noc
+        self.posicao = posicao  # posicao na matriz de noc
+        self.noc = noc  # armazenando a instância de noc
         self.buffers = {
             "Norte": [],
             "Sul": [],
@@ -212,17 +179,17 @@ class Roteador:
             "Oeste": [],
             "Processador": [],
             "Pacotes_entregues": [], #pacotes que chegaram ao seu destino final
-            "Pacotes_recebidos": [],
+            "Pacotes_recebidos": [], # buffer de suporta da funcao de enviar/receber 
         }
         self.buffer_atual = "Oeste"
-        self.tempo = 0
+        self.tempo = 0    # armazena o tempo
         self.total_pacotes_criados = 0
         self.total_pacotes_perdidos = 0
-        self.total_pacotes_chegos = 0 #chegaram ao seu destino final
+        self.total_pacotes_chegos = 0 # chegaram ao seu destino final
         self.total_pacotes_recebidos = 0 # quantos chegaram no roteador 
 
     def enviar_pacote_RR(self):
-        buffer_pacote_para_enviar = self.selecionar_buffer() # seleciona qual buffer do roteador eu vou pegar o pacote
+        buffer_pacote_para_enviar = self.selecionar_buffer() # seleciona qual buffer do roteador eu vou olhar no momentos
         
         self.tempo = self.tempo + 1 
 
@@ -366,8 +333,8 @@ plt.plot(x_fit, y_fit, color='red', label=' 8x8')
 
 # Adicionando rótulos e título
 plt.xlabel('Tempo')
-plt.ylabel('Eficiência ')
-plt.title('Gráfico da Eficiência ao Longo do Tempo')
+plt.ylabel('Packet Lost ')
+plt.title('Gráfico do Packet Lost ao Longo do Tempo')
 
 plt.legend()
 # Exibindo o gráfico

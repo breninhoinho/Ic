@@ -4,8 +4,7 @@ from tkinter import ttk
 import numpy as np
 from Algoritmos_Mapeamento.Random import *
 from Algoritmos_Mapeamento.Engineered_Mapping import *
-from Métricas.Energia_simp import *
-from Métricas.Latencia_simp import *
+
 
 # Variaveis globais do programa
 selecao = None
@@ -87,7 +86,7 @@ janela.mainloop()
 cores_noc =  [['' for _ in range(dimensao[1])] for _ in range(dimensao[0])]
 
 # gerar grafo para teste
-tam = 5
+tam = 13
 adj_matriz = np.zeros((tam,tam), dtype=int)
 edges = [(0, 1, 5), (0, 3 ,4), (1, 2 ,3), (1, 4 ,2 ), (2, 3, 1), (3, 4, 8)]
 
@@ -98,14 +97,8 @@ for edge in edges:
 
 
 #dicionario_posicoes = Random(cores_noc,tam)
-dicionario_posicoes = Engineered_Mapping(cores_noc,tam,"clustered","diagonally","raster")
-print(cores_noc)
-print(dicionario_posicoes)
-# energia_gasta = Energia_simp(adj_matriz, dicionario_posicoes)
-# print(energia_gasta)
-print(adj_matriz)
-#latencia_gasta = Latencia_simp(cores_noc,adj_matriz,dicionario_posicoes)
-# print(dicionario_posicoes)
-# print(cores_noc[0][0])
-# print(cores_noc[0][0][-1])
-# print(cores_noc[0][0][-1]['Fila'])
+dicionario_posicoes = Engineered_Mapping(cores_noc,tam,"distributed","horizontally","snake")
+
+for linha in cores_noc:
+    print(linha)
+    

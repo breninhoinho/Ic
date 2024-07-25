@@ -152,7 +152,7 @@ def ACA_Algorithm(AC, Nc, DP, PC):
     tempo_tempo = 0
     lista = []
     
-    while not tempo == 1000:
+    while not tempo == 10000:
         print(tempo)
         for i in range(Nc):
             if AC[i].status == "exploração":
@@ -292,10 +292,16 @@ DP = 0.5
 PC = 0.1
 
 acb, lista , tempo = ACA_Algorithm(AC, Nc, DP, PC)
-
+print()
+print("Melhor solução encontrada:")
 for linha in acb.populacao:
     print(linha)
-print(acb.fitness)
-#print(lista,tempo)
-plt.plot(tempo, lista, label = "Oooooo", marker='o')
+print("Fitness da melhor solução: ", acb.fitness)
+print()
+
+plt.plot(tempo, lista, label = "Algoritmo Condores", marker='o')
+plt.xlabel('Quantidade de evoluções')
+plt.ylabel('Fitness')
+plt.title('Gráfico do do Fitness ao longo das evoluções')
+plt.legend()
 plt.show()

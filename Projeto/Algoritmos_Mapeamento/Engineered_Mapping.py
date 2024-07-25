@@ -50,7 +50,7 @@ def ordem_nó(cores_noc, distribuicao, traversal, transition):
                     dicionario_posicoes[str(indice)] = (i-j,j)
         
         for i in range(1,len(cores_noc)):
-            for j in range(len(cores_noc)-i):                        ##resolver aqui
+            for j in range(len(cores_noc)-i):                        
                 cores_noc[len(cores_noc)-1-j][i+j] = distribuicao[indice]
                 indice +=1
                 dicionario_posicoes[str(indice)] = (len(cores_noc)-1-j,i+j)

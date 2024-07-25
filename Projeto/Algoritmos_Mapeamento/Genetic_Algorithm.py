@@ -228,11 +228,15 @@ pc_mutar = 0.5
 populacao_inicial = Gerar_AC(tam, adj_matriz, tamanho_populacao)
 
 melhor_solucao, lista , tempo = Genetic_Algorithm(populacao_inicial, geracoes, tamanho_populacao, adj_matriz, pc_mutar)
-
+print()
 print("Melhor solução encontrada:")
 for linha in melhor_solucao.populacao:
     print(linha)
 print("Fitness da melhor solução:", melhor_solucao.fitness)
-
-plt.plot(tempo, lista, label = "Oooooo", marker='o')
+print()
+plt.plot(tempo, lista, label = "Algoritmo Genético", marker='o')
+plt.xlabel('Quantidade de evoluções')
+plt.ylabel('Fitness')
+plt.title('Gráfico do do Fitness ao longo das evoluções')
+plt.legend()
 plt.show()
