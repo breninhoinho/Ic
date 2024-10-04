@@ -3,14 +3,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 class Noc:
-    def __init__(self, dimensao):
+    def __init__(self, dimensao , rot, matriz_adjacencia, map):
         self.dimensao = dimensao
+        self.roteamento = rot
+        self.matriz_adjacencia = matriz_adjacencia
+        self.mapeamento = map
         self.matriz_roteadores = self.criar_matriz_roteadores(dimensao)
         self.total_pacotes = 0
         self.total_pacotes_recebidos = [0]
         self.total_pacotes_chegos = [0]
         self.total_pacotes_perdidos = [0]
         self.chegos = 0
+        self.criar_pacotes_e_alocar()
     
     def criar_matriz_roteadores(self, dimensao):
         tamanho = dimensao
@@ -23,21 +27,56 @@ class Noc:
 
         return matriz
 
+    def criar_pacotes_e_alocar(self):
+        for i in range(len(self.matriz_adjacencia)):
+            for j in range(len(self.matriz_adjacencia[i])):
+                if j > i and self.matriz_adjacencia[i][j] > 0:  # Verifica se há comunicação entre i e j
+                    origem = self.encontrar_posicao(i)
+                    destino = self.encontrar_posicao(j)
+                    pacote = Pacote(origem, destino, 0, self.matriz_adjacencia[i][j])
+                    self.alocar_pacotes(pacote)
+
+    def encontrar_posicao(self, tarefa):
+        for i in range(self.dimensao):
+            for j in range(self.dimensao):
+                if self.mapeamento[i][j] == tarefa:
+                    return (i,j)
+
     def alocar_pacotes(self,pacote):
         x,y = pacote.posicao_inicial 
         self.total_pacotes += 1
         self.matriz_roteadores[x][y].buffers["Processador"].append(pacote)
+    
+    def latencia(self):
+        contador = 0
+        while self.total_pacotes != self.total_pacotes_chegos[-1]:
+            contador += 1
+            self.rodar(2)
+            self.ajusta_pacotes_chegos()
+            for i in range(self.dimensao):
+                for j in range(self.dimensao):
+                    print(f'{(i,j)}', self.matriz_roteadores[i][j].buffers)
+            print(contador)
+            print(self.total_pacotes)
+            print(self.total_pacotes_chegos)
+        return contador
+            
 
-    def rodar (self, vezes):
+    def rodar(self, vezes):
+        dicionario_movimentos = {}
         for i in range(vezes): 
-            if i%2==0:
+            if i % 2 == 0:
                 for j in range(self.dimensao):
                     for k in range(self.dimensao):
-                        self.matriz_roteadores[j][k].enviar_pacote_RR()
+                        id, movimento = self.matriz_roteadores[j][k].enviar_pacote_RR()
+                        if id != "nada":
+                            dicionario_movimentos[id] = movimento
             else:
                 for j in range(self.dimensao):
                     for k in range(self.dimensao):
                         self.matriz_roteadores[j][k].ajustar_pacotes()
+        
+        return dicionario_movimentos
 
     def rodar_simulacao(self, qtd_max_pacotes):
         input = [0]
@@ -124,7 +163,6 @@ class Noc:
 
         self.rodar(120)
         self.ajusta_pacotes_chegos()
-        #self.ajusta_pacote_total()
         print(self.total_pacotes_chegos[-1],self.total_pacotes)
         return  (100*((self.total_pacotes_chegos[-1] / self.total_pacotes)))
         
@@ -194,7 +232,7 @@ class Roteador:
         self.tempo = self.tempo + 1 
 
         if self.buffers[buffer_pacote_para_enviar] == []:
-            return
+            return "nada", "nada"
         else:
             if buffer_pacote_para_enviar == "Processador":
                 self.total_pacotes_criados += 1
@@ -206,9 +244,11 @@ class Roteador:
             self.buffers["Pacotes_entregues"].append(pacote)
             pacote.tempo_chegada = self.tempo
             self.total_pacotes_chegos += 1
+            return pacote.id, "Processador"
 
         else:
             roteador_destino.buffers["Pacotes_recebidos"].append((pacote,buffer_destino))
+            return pacote.id, buffer_destino
         
     def ajustar_pacotes(self):
         tamanho = len(self.buffers["Pacotes_recebidos"])
@@ -257,19 +297,38 @@ class Roteador:
         x_atual , y_atual = self.posicao  #posicao atual do roteador
         delta_x = x_destino-x_atual #deslocamento em x
         delta_y = y_destino-y_atual # deslocamento em y
-        if delta_x == 0 and delta_y == 0:
-            return self ,  "Nada"
-        if delta_y > 0:
-            return self.noc.matriz_roteadores[x_atual][y_atual+1] , "Oeste" #.buffers["Oeste"]
-        if delta_y < 0:
-            return self.noc.matriz_roteadores[x_atual][y_atual-1] , "Leste"#.buffers["Leste"]
-        if delta_x > 0:
-            return self.noc.matriz_roteadores[x_atual+1][y_atual] , "Norte"#.buffers["Norte"]
-        if delta_x < 0:
-            return self.noc.matriz_roteadores[x_atual-1][y_atual] , "Sul"#.buffers["Sul"]
+        if self.noc.roteamento == "XY":
+            if delta_x == 0 and delta_y == 0:
+                return self ,  "Nada"
+            if delta_y > 0:
+                return self.noc.matriz_roteadores[x_atual][y_atual+1] , "Oeste" #.buffers["Oeste"]
+            if delta_y < 0:
+                return self.noc.matriz_roteadores[x_atual][y_atual-1] , "Leste"#.buffers["Leste"]
+            if delta_x > 0:
+                return self.noc.matriz_roteadores[x_atual+1][y_atual] , "Norte"#.buffers["Norte"]
+            if delta_x < 0:
+                return self.noc.matriz_roteadores[x_atual-1][y_atual] , "Sul"#.buffers["Sul"]
+        elif self.noc.roteamento == "XYX":
+            ...
+        elif self.noc.roteamento == "Negative First":
+            if delta_x == 0 and delta_y == 0:
+                return self, "Nada"
 
+            # Primeiro lida com o deslocamento negativo
+            if delta_y < 0:
+                return self.noc.matriz_roteadores[x_atual][y_atual-1] , "Leste"#.buffers["Leste"]
+            elif delta_x < 0:
+                return self.noc.matriz_roteadores[x_atual-1][y_atual] , "Sul"#.buffers["Sul"]
+
+            # Depois lida com o deslocamento positivo
+            if delta_y > 0:
+                return self.noc.matriz_roteadores[x_atual][y_atual+1] , "Oeste" #.buffers["Oeste"]
+            elif delta_x > 0:
+                return self.noc.matriz_roteadores[x_atual+1][y_atual] , "Norte"#.buffers["Norte"]
+
+        
 class Pacote():
-    contador_global = 1
+    contador_global = 0
 
     def __init__(self,  posicao_inicial, posicao_destino, tempo_criacao , peso = 1):
         self.id = Pacote.contador_global
@@ -283,13 +342,45 @@ class Pacote():
     def __repr__(self):
         return f'Pacote {self.id}'
 
+"""
+mapeamento = [
+    [0, 1],  # Roteador (0,0) tem Tarefa 1, e Roteador (0,1) tem Tarefa 2
+   [2, 3]   # Roteador (1,0) tem Tarefa 3, e Roteador (1,1) tem Tarefa 4
+]
+
+matriz_adjacencia = [
+    [0, 1, 1, 0],  # Tarefa 1 se comunica com Tarefa 2 e 3
+    [1, 0, 0, 1],  # Tarefa 2 se comunica com Tarefa 1 e 4
+    [1, 0, 0, 1],  # Tarefa 3 se comunica com Tarefa 1 e 4
+    [0, 1, 1, 0]   # Tarefa 4 se comunica com Tarefa 2 e 3
+]
+
+noc1 = Noc(2, "XY", matriz_adjacencia, mapeamento)
+
+for i in range(2):
+    for j in range(2):
+        print( f"({i},{j})" , noc1.matriz_roteadores[i][j].buffers)
+"""
+"""
+noc1 = Noc(4 , "Negative First")
+pacote = Pacote((3,1),(1,3),1)
+noc1.alocar_pacotes(pacote) 
 
 
+
+noc1.rodar(1)
+print(  "xy", noc1.matriz_roteadores[3][2].buffers)
+print("negative",noc1.matriz_roteadores[2][1].buffers)
+
+"""
+
+
+"""
 qtd_linhas = 2
 qtd_colunas = 2
 tempo_simulacao = 100
 
-noc1 = Noc(4)
+noc1 = Noc(4 , "Negative First")
 instante_tempos1,total_thru1 = noc1.rodar_simulacao(tempo_simulacao)
 
 # Grau do polinômio
@@ -310,7 +401,7 @@ y_fit = polynomial(x_fit)
 # Plotar a linha de regressão
 plt.plot(x_fit, y_fit, color='blue', label=' 4x4')
 
-noc2 = Noc(8)
+noc2 = Noc(8, "Negative First")
 instante_tempos2,total_thru2 = noc2.rodar_simulacao(tempo_simulacao)
 
 # Grau do polinômio
@@ -339,6 +430,7 @@ plt.title('Gráfico do Packet Lost ao Longo do Tempo')
 plt.legend()
 # Exibindo o gráfico
 plt.show()
+"""
 
 
 '''

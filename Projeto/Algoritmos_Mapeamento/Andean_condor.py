@@ -93,33 +93,26 @@ class Populacao:
         
     
     def calcular_fitness(self):
-        n = len(self.matriz_adjacencia)
-        m = len(self.populacao)
+        
+        n = len(self.matriz_adjacencia)  # Número de tarefas
+        m = len(self.populacao)  # Dimensão da NoC
         valor_final = 0
-        bandwidth = 0
-        man_dist = 0
-        for i in range(n):
-            for j in range(n):
-                bandwidth = self.matriz_adjacencia[i][j]
-                if bandwidth == 0:
-                    pass
-                else:
-                    ix = 0
-                    iy = 0
-                    jx = 0
-                    jy = 0
-                    for k in range(m):
-                        for l in range(m):
-                            if self.populacao[k][l] == i:
-                                ix = k
-                                iy = l
-                            if self.populacao[k][l] == j:
-                                jx = k
-                                jy = l    
-                    man_dist = abs(ix-jx) + abs(iy-jy)
-                    valor_final += bandwidth * man_dist
-                    self.fitness = valor_final
 
+        for i in range(n):  # Percorre todas as tarefas
+            for j in range(i+1, n):  # Garante que a matriz seja percorrida uma única vez (i, j) != (j, i)
+                bandwidth = self.matriz_adjacencia[i][j]
+                if bandwidth > 0 :  # Se há comunicação entre as tarefas i e j
+                    # Encontra a posição de i no self.populacao
+                    ix, iy = [(k, l) for k in range(m) for l in range(m) if self.populacao[k][l] == i][0]
+                    # Encontra a posição de j no self.populacao
+                    jx, jy = [(k, l) for k in range(m) for l in range(m) if self.populacao[k][l] == j][0]
+                    # Calcula a distância Manhattan
+                    man_dist = abs(ix - jx) + abs(iy - jy)
+                    # Acumula o valor da energia total
+                    valor_final += bandwidth * man_dist
+
+        self.fitness = valor_final
+        
 def Gerar_AC(tam, adj_matriz, nc):
     n = nc
     lista_AC = []
@@ -152,8 +145,7 @@ def ACA_Algorithm(AC, Nc, DP, PC):
     tempo_tempo = 0
     lista = []
     
-    while not tempo == 10000:
-        print(tempo)
+    while not tempo == 1000:
         for i in range(Nc):
             if AC[i].status == "exploração":
                 # Movimento de exploração para AC[i]
@@ -263,7 +255,7 @@ def intensification_movement(condor):
     # Recalcular o fitness após a troca
     condor.calcular_fitness()
 
-
+"""
 adj_matriz = [
   [0, 8, 5, 7, 6, 4, 8, 3, 9, 2, 1, 8, 9, 6, 7, 10],
   [9, 0, 3, 2, 5, 7, 6, 10, 1, 9, 4, 5, 8, 9, 1, 2],
@@ -282,26 +274,31 @@ adj_matriz = [
   [7, 1, 6, 9, 10, 9, 7, 8, 5, 2, 10, 1, 6, 2, 0, 3],
   [1, 2, 5, 8, 10, 7, 1, 6, 2, 7, 4, 9, 8, 9, 3, 0]
 ]
+"""
 
-Nc = 100
+def Run_Andean_condor(adj_matriz, tam):
+    Nc = 100
 
-AC = Gerar_AC(4, adj_matriz, Nc)
+    AC = Gerar_AC(tam, adj_matriz, Nc)
 
-DP = 0.5
+    DP = 0.5
 
-PC = 0.1
+    PC = 0.1
 
-acb, lista , tempo = ACA_Algorithm(AC, Nc, DP, PC)
-print()
-print("Melhor solução encontrada:")
-for linha in acb.populacao:
-    print(linha)
-print("Fitness da melhor solução: ", acb.fitness)
-print()
+    acb, lista , tempo = ACA_Algorithm(AC, Nc, DP, PC)
 
-plt.plot(tempo, lista, label = "Algoritmo Condores", marker='o')
-plt.xlabel('Quantidade de evoluções')
-plt.ylabel('Fitness')
-plt.title('Gráfico do do Fitness ao longo das evoluções')
-plt.legend()
-plt.show()
+    return acb.populacao
+
+# print()
+# print("Melhor solução encontrada:")
+# for linha in acb.populacao:
+#     print(linha)
+# print("Fitness da melhor solução: ", acb.fitness)
+# print()
+
+# plt.plot(tempo, lista, label = "Algoritmo Condores", marker='o')
+# plt.xlabel('Quantidade de evoluções')
+# plt.ylabel('Fitness')
+# plt.title('Gráfico do do Fitness ao longo das evoluções')
+# plt.legend()
+# plt.show()

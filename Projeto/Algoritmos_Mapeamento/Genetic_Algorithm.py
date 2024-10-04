@@ -86,25 +86,27 @@ class Populacao:
         self.fitness = None
     
     def calcular_fitness(self):
-        n = len(self.matriz_adjacencia)
-        m = len(self.populacao)
+        
+        n = len(self.matriz_adjacencia)  # Número de tarefas
+        m = len(self.populacao)  # Dimensão da NoC
         valor_final = 0
-        for i in range(n):
-            for j in range(n):
+
+        for i in range(n):  # Percorre todas as tarefas
+            for j in range(i+1, n):  # Garante que a matriz seja percorrida uma única vez (i, j) != (j, i)
                 bandwidth = self.matriz_adjacencia[i][j]
-                if bandwidth != 0:
-                    ix = iy = jx = jy = 0
-                    for k in range(m):
-                        for l in range(m):
-                            if self.populacao[k][l] == i:
-                                ix, iy = k, l
-                            if self.populacao[k][l] == j:
-                                jx, jy = k, l    
+                if bandwidth > 0 :  # Se há comunicação entre as tarefas i e j
+                    # Encontra a posição de i no self.populacao
+                    ix, iy = [(k, l) for k in range(m) for l in range(m) if self.populacao[k][l] == i][0]
+                    # Encontra a posição de j no self.populacao
+                    jx, jy = [(k, l) for k in range(m) for l in range(m) if self.populacao[k][l] == j][0]
+                    # Calcula a distância Manhattan
                     man_dist = abs(ix - jx) + abs(iy - jy)
+                    # Acumula o valor da energia total
                     valor_final += bandwidth * man_dist
+
         self.fitness = valor_final
 
-def Genetic_Algorithm(populacao, geracoes, tamanho_populacao, adj_matriz, pc_mutar):
+def Genetic_Algorithm(populacao, geracoes, tamanho_populacao, adj_matriz, pc_mutar,tam):
     def selecionar(populacao):
         return min(random.sample(populacao, k=3), key=aptidao)
     
@@ -192,13 +194,28 @@ def Genetic_Algorithm(populacao, geracoes, tamanho_populacao, adj_matriz, pc_mut
         else:
             geracoes_estagnadas += 1
 
-        print(f"Geração {geracao}: Melhor Aptidão = {melhor_aptidao}")
-
         if geracoes_estagnadas >= 1000:
             break
 
     return melhor_solucao, lista, tempo
 
+
+def Run_Genetic_Algorithm(qtd_geracao, qtd_tamanho_populacao, taxa_mutacao, adj_matriz,tamanho):
+    geracoes = qtd_geracao  # Número de gerações
+    tamanho_populacao = qtd_tamanho_populacao  # Tamanho da população
+    pc_mutar = taxa_mutacao
+    tam = tamanho
+
+    populacao_inicial = Gerar_AC(tam, adj_matriz, tamanho_populacao)
+
+    melhor_solucao, lista , tempo = Genetic_Algorithm(populacao_inicial, geracoes, tamanho_populacao, adj_matriz, pc_mutar,tam)
+    for i in range(len(melhor_solucao.populacao)):
+        for j in range(len(melhor_solucao.populacao)):
+            if melhor_solucao.populacao[i][j] == -1:
+                melhor_solucao.populacao[i][j] = ''
+    return melhor_solucao.populacao
+
+"""
 # Exemplo de uso
 tam = 4  # Tamanho da matriz cores_noc (4x4)
 adj_matriz = [
@@ -219,16 +236,8 @@ adj_matriz = [
   [7, 1, 6, 9, 10, 9, 7, 8, 5, 2, 10, 1, 6, 2, 0, 3],
   [1, 2, 5, 8, 10, 7, 1, 6, 2, 7, 4, 9, 8, 9, 3, 0]
 ]
-
-
-geracoes = 10000  # Número de gerações
-tamanho_populacao = 100  # Tamanho da população
-pc_mutar = 0.5
-
-populacao_inicial = Gerar_AC(tam, adj_matriz, tamanho_populacao)
-
-melhor_solucao, lista , tempo = Genetic_Algorithm(populacao_inicial, geracoes, tamanho_populacao, adj_matriz, pc_mutar)
-print()
+"""
+"""print()
 print("Melhor solução encontrada:")
 for linha in melhor_solucao.populacao:
     print(linha)
@@ -240,3 +249,4 @@ plt.ylabel('Fitness')
 plt.title('Gráfico do do Fitness ao longo das evoluções')
 plt.legend()
 plt.show()
+"""

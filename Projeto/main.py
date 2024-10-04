@@ -4,6 +4,7 @@ from tkinter import ttk
 import numpy as np
 from Algoritmos_Mapeamento.Random import *
 from Algoritmos_Mapeamento.Engineered_Mapping import *
+from Algoritmos_Mapeamento.Genetic_Algorithm import *
 
 
 # Variaveis globais do programa
@@ -86,19 +87,34 @@ janela.mainloop()
 cores_noc =  [['' for _ in range(dimensao[1])] for _ in range(dimensao[0])]
 
 # gerar grafo para teste
-tam = 13
-adj_matriz = np.zeros((tam,tam), dtype=int)
-edges = [(0, 1, 5), (0, 3 ,4), (1, 2 ,3), (1, 4 ,2 ), (2, 3, 1), (3, 4, 8)]
+adj_matriz = [
+  [0, 8, 5, 7, 6, 4, 8, 3, 9, 2, 1, 8, 9, 6, 7, 10],
+  [9, 0, 3, 2, 5, 7, 6, 10, 1, 9, 4, 5, 8, 9, 1, 2],
+  [7, 2, 0, 9, 2, 10, 4, 5, 6, 8, 7, 3, 9, 7, 6, 5],
+  [4, 8, 6, 0, 3, 1, 5, 7, 2, 6, 10, 4, 7, 10, 9, 8],
+  [10, 5, 8, 1, 0, 9, 7, 6, 3, 1, 5, 2, 8, 4, 6, 10],
+  [2, 7, 1, 9, 6, 0, 8, 5, 10, 3, 7, 6, 4, 1, 9, 7],
+  [8, 6, 10, 5, 2, 9, 0, 1, 7, 4, 6, 10, 9, 5, 7, 1],
+  [5, 10, 4, 2, 9, 8, 1, 0, 6, 10, 3, 9, 5, 1, 8, 6],
+  [6, 1, 7, 8, 10, 7, 6, 9, 0, 5, 9, 2, 10, 3, 5, 2],
+  [3, 9, 10, 7, 1, 4, 10, 6, 5, 0, 8, 1, 6, 10, 2, 7],
+  [9, 4, 7, 10, 5, 7, 6, 3, 9, 8, 0, 3, 2, 9, 10, 4],
+  [8, 5, 3, 4, 2, 6, 10, 9, 2, 1, 3, 0, 7, 4, 1, 9],
+  [5, 8, 9, 7, 8, 4, 9, 5, 10, 6, 2, 7, 0, 5, 6, 8],
+  [10, 9, 7, 10, 6, 1, 5, 1, 3, 10, 9, 4, 5, 0, 2, 9],
+  [7, 1, 6, 9, 10, 9, 7, 8, 5, 2, 10, 1, 6, 2, 0, 3],
+  [1, 2, 5, 8, 10, 7, 1, 6, 2, 7, 4, 9, 8, 9, 3, 0]
+]
 
-# Atualizando a matriz de adjacência com as arestas
-for edge in edges:
-    adj_matriz[edge[0]][edge[1]] = edge[2]
-    adj_matriz[edge[1]][edge[0]] = edge[2]
+adj_matriz = [[0, 1, 2, 3, 4, 5], [0, 0, 6, 7, 8, 9], [0, 0, 0, 10, 11, 12], [0, 0, 0, 0, 13, 14], [0, 0, 0, 0, 0, 15], [0, 0, 0, 0, 0, 0]]
+
+dicionario_posicoes = Random(cores_noc,dimensao[0]*dimensao[0])
+
+dicionario_posicoes = Engineered_Mapping(cores_noc,dimensao[0]*dimensao[0],"clustered","horizontally","snake")
 
 
-#dicionario_posicoes = Random(cores_noc,tam)
-dicionario_posicoes = Engineered_Mapping(cores_noc,tam,"distributed","horizontally","snake")
+cores_noc = Run_Genetic_Algorithm(10000, 100, 0.5, adj_matriz, dimensao[0])
+print(cores_noc)
+# for linha in cores_noc:
+#     print(linha)
 
-for linha in cores_noc:
-    print(linha)
-    
