@@ -7,6 +7,9 @@ from Algoritmos_Mapeamento.Random import *
 from Algoritmos_Mapeamento.Genetic_Algorithm import *
 from Algoritmos_Mapeamento.Andean_condor import *
 from Noc import *
+import json
+from time import sleep
+
 
 
 class GraphApp:
@@ -160,7 +163,7 @@ class GraphApp:
         
         nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=500, font_size=10, font_weight='bold')
         nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
-        
+        plt.savefig("grafo.png", format="PNG")
         plt.show()
         
         self.verificação_da_corretude()
@@ -204,24 +207,30 @@ class GraphApp:
         self.matrix_input_window.columnconfigure(0, weight=1)
 
     def mapeamentos(self):
-        # print(self.dimensao)
-        # print(self.matrix)
-        # print(self.roteamento)
-        # print(self.selecao)
+        
         cores_noc = Run_Genetic_Algorithm(10000, 100, 0.5, self.matrix, self.dimensao[0])
         print(cores_noc)
         print(self.calcular_energia(cores_noc))
+        
         print(self.dimensao[0] , self.roteamento, self.matrix, cores_noc)
         noc1 = Noc(self.dimensao[0] , self.roteamento, self.matrix, cores_noc)
+        latencia = noc1.latencia()
+        print(latencia)
         for i in range(self.dimensao[0]):
            for j in range(self.dimensao[0]):
                print(noc1.matriz_roteadores[i][j].buffers)
-        dicionario_movi = noc1.rodar(2)
-        print(dicionario_movi)
-        dicionario_movi = noc1.rodar(10)
-        print(dicionario_movi)
-        from tela_teste import rodar_tela
-        rodar_tela(self.matrix,self.roteamento,self.dimensao[0])
+        
+
+        data = {
+            "matriz_adj": self.matrix,
+            "melhor_mapeamento": cores_noc,
+            "n": self.dimensao,
+            "roteamento":self.roteamento
+        }
+        
+        # Salvar em um arquivo JSON
+        with open('config.json', 'w') as f:
+            json.dump(data, f)
 
     def calcular_energia(self, mapeamento):
         n = len(self.matrix)  # Número de tarefas
@@ -242,9 +251,33 @@ class GraphApp:
                     valor_final += bandwidth * man_dist
 
         return valor_final
+    
+    def calcular_tolerancia_falha(matriz):
+        # Direções para as células adjacentes (cima, baixo, esquerda, direita)
+        direcoes = [(-1, 0), (1, 0), (0, -1), (0, 1)]
+        tolerancia = 0
 
+        # Itera sobre cada célula da matriz
+        for i in range(len(matriz)):
+            for j in range(len(matriz[i])):
+                # Verifica se a célula contém uma tarefa (número diferente de 0)
+                if matriz[i][j] != 0:
+                    # Verifica se há células adjacentes vazias que têm uma tarefa adjacente
+                    for dx, dy in direcoes:
+                        x, y = i + dx, j + dy
+                        # Verifica se a posição está dentro dos limites da matriz
+                        if 0 <= x < len(matriz) and 0 <= y < len(matriz[0]):
+                            # Se a célula adjacente estiver vazia (0)
+                            if matriz[x][y] != 0:
+                                tolerancia += 1
+                                
+        return tolerancia
+    
 
 if __name__ == "__main__":
     root = tk.Tk()
     app = GraphApp(root)
     root.mainloop()
+    sleep(1)
+    from Tela import *
+

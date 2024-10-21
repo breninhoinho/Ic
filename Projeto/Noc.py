@@ -53,12 +53,6 @@ class Noc:
             contador += 1
             self.rodar(2)
             self.ajusta_pacotes_chegos()
-            for i in range(self.dimensao):
-                for j in range(self.dimensao):
-                    print(f'{(i,j)}', self.matriz_roteadores[i][j].buffers)
-            print(contador)
-            print(self.total_pacotes)
-            print(self.total_pacotes_chegos)
         return contador
             
 
@@ -341,6 +335,11 @@ class Pacote():
     
     def __repr__(self):
         return f'Pacote {self.id}'
+    
+    @classmethod
+    def resetar_contador(cls):
+        """Método para reiniciar o contador global"""
+        cls.contador_global = 0
 
 """
 mapeamento = [
