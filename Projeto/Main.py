@@ -6,9 +6,14 @@ import matplotlib.pyplot as plt
 from Algoritmos_Mapeamento.Random import *
 from Algoritmos_Mapeamento.Genetic_Algorithm import *
 from Algoritmos_Mapeamento.Andean_condor import *
+from Algoritmos_Mapeamento.Random import *
+from Algoritmos_Mapeamento.Engineered_Mapping import *
+from Algoritmos_Mapeamento.Single_objective import *
 from Noc import *
 import json
 from time import sleep
+import concurrent.futures
+import time
 
 
 
@@ -163,7 +168,7 @@ class GraphApp:
         
         nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=500, font_size=10, font_weight='bold')
         nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
-        plt.savefig("grafo.png", format="PNG")
+        plt.savefig("Projeto/grafo.png", format="PNG")
         plt.show()
         
         self.verificação_da_corretude()
@@ -207,29 +212,179 @@ class GraphApp:
         self.matrix_input_window.columnconfigure(0, weight=1)
 
     def mapeamentos(self):
+        tempo_limite = 3
+        try:
+            # Usando ThreadPoolExecutor para definir o tempo limite
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                future = executor.submit(Run_Genetic_Algorithm, 10000, 100, 0.5, self.matrix, self.dimensao[0])
+                cores_noc = future.result(timeout=tempo_limite)
+        except concurrent.futures.TimeoutError:
+            print(f"Erro: Run_Genetic_Algorithm excedeu o tempo limite de {tempo_limite} segundos.")
+            cores_noc = None  # Valor padrão em caso de timeout
+        except Exception as e:
+            print(f"Erro ao executar Run_Genetic_Algorithm: {e}")
+            cores_noc = None
         
-        cores_noc = Run_Genetic_Algorithm(10000, 100, 0.5, self.matrix, self.dimensao[0])
-        print(cores_noc)
-        print(self.calcular_energia(cores_noc))
-        
-        print(self.dimensao[0] , self.roteamento, self.matrix, cores_noc)
-        noc1 = Noc(self.dimensao[0] , self.roteamento, self.matrix, cores_noc)
-        latencia = noc1.latencia()
-        print(latencia)
+        cores_noc2 = Run_Andean_condor(self.matrix, self.dimensao[0])
+        cores_noc3 = Run_Random(self.matrix, self.dimensao[0])
+        cores_noc41 = Run_Single_Objective(self.matrix, self.dimensao[0], "Energia")
+        cores_noc4 = [["" for _ in range(self.dimensao[1])] for _ in range(self.dimensao[0])]
         for i in range(self.dimensao[0]):
-           for j in range(self.dimensao[0]):
-               print(noc1.matriz_roteadores[i][j].buffers)
-        
+            for j in range(self.dimensao[0]):
+                if cores_noc41[i][j] != '':
+                    cores_noc4[i][j] = int(cores_noc41[i][j])
+
+        if self.selecao[0] == 1:
+            try:
+                en_gene = self.calcular_energia(cores_noc)
+            except Exception as e:
+                en_gene = 9999999999999
+
+            try:
+                en_andean = self.calcular_energia(cores_noc2)
+            except Exception as e:
+                en_andean = 9999999999999
+
+            try:
+                en_ramdon = self.calcular_energia(cores_noc3)
+            except Exception as e:
+                en_ramdon = 9999999999999
+
+            try:
+                en_single = self.calcular_energia(cores_noc4)
+            except Exception as e:
+                en_single = 9999999999999
+
+            # Criar um dicionário associando os nomes das variáveis de energia aos seus valores
+            energias = {
+                "en_gene": en_gene,
+                "en_andean": en_andean,
+                "en_ramdon": en_ramdon,
+                "en_single": en_single
+            }
+
+            # Criar um dicionário associando os nomes das variáveis aos respectivos cores_noc
+            mapas_noc = {
+                "en_gene": cores_noc,
+                "en_andean": cores_noc2,
+                "en_ramdon": cores_noc3,
+                "en_single": cores_noc4
+            }
+
+            # Encontrar a variável com o menor valor de energia
+            nome_menor_energia = min(energias, key=energias.get)
+            valor_menor_energia = energias[nome_menor_energia]
+
+            # Atribuir o cores_noc correspondente ao menor valor de energia
+            melhor_map = mapas_noc[nome_menor_energia]
+        elif self.selecao[1] == 1:
+
+            try:
+                noc1 = Noc(self.dimensao[0], self.roteamento, self.matrix, cores_noc)
+                en_gene = noc1.latencia()
+            except Exception as e:
+                en_gene = 9999999999  # Valor padrão em caso de erro
+
+            try:
+                noc2 = Noc(self.dimensao[0], self.roteamento, self.matrix, cores_noc2)
+                en_andean = noc2.latencia()
+            except Exception as e:
+                en_andean = 9999999999
+
+            try:
+                noc3 = Noc(self.dimensao[0], self.roteamento, self.matrix, cores_noc3)
+                en_ramdon = noc3.latencia()
+            except Exception as e:
+                en_ramdon = 9999999999
+
+            try:
+                noc4 = Noc(self.dimensao[0], self.roteamento, self.matrix, cores_noc4)
+                en_single = noc4.latencia()
+            except Exception as e:
+                en_single = 9999999999
+            
+
+            # Criar um dicionário associando os nomes das variáveis de energia aos seus valores
+            latencia = {
+                "en_gene": en_gene,
+                "en_andean": en_andean,
+                "en_ramdon": en_ramdon,
+                "en_single": en_single
+            }
+
+            # Criar um dicionário associando os nomes das variáveis aos respectivos cores_noc
+            mapas_noc = {
+                "en_gene": cores_noc,
+                "en_andean": cores_noc2,
+                "en_ramdon": cores_noc3,
+                "en_single": cores_noc4
+            }
+
+            # Encontrar a variável com o menor valor de energia
+            nome_menor_energia = min(latencia, key=latencia.get)
+            valor_menor_energia = latencia[nome_menor_energia]
+
+
+            # Atribuir o cores_noc correspondente ao menor valor de energia
+            melhor_map = mapas_noc[nome_menor_energia]
+
+        elif self.selecao[2] ==1:
+
+            try:
+                en_gene = self.calcular_tolerancia_falha(cores_noc)
+            except Exception as e:
+                en_gene = 9999999999
+
+            try:
+                en_andean = self.calcular_tolerancia_falha(cores_noc2)
+            except Exception as e:
+                en_andean = 9999999999
+
+            try:
+                en_ramdon = self.calcular_tolerancia_falha(cores_noc3)
+            except Exception as e:
+                en_ramdon = 9999999999
+
+            try:
+                en_single = self.calcular_tolerancia_falha(cores_noc4)
+            except Exception as e:
+                en_single = 9999999999
+
+
+            # Criar um dicionário associando os nomes das variáveis de energia aos seus valores
+            tolerancia = {
+                "en_gene": en_gene,
+                "en_andean": en_andean,
+                "en_ramdon": en_ramdon,
+                "en_single": en_single
+            }
+
+            # Criar um dicionário associando os nomes das variáveis aos respectivos cores_noc
+            mapas_noc = {
+                "en_gene": cores_noc,
+                "en_andean": cores_noc2,
+                "en_ramdon": cores_noc3,
+                "en_single": cores_noc4
+            }
+
+            # Encontrar a variável com o menor valor de energia
+            nome_menor_energia = min(tolerancia, key=tolerancia.get)
+            valor_menor_energia = tolerancia[nome_menor_energia]
+
+
+            # Atribuir o cores_noc correspondente ao menor valor de energia
+            melhor_map = mapas_noc[nome_menor_energia]
+
 
         data = {
             "matriz_adj": self.matrix,
-            "melhor_mapeamento": cores_noc,
+            "melhor_mapeamento": melhor_map,
             "n": self.dimensao,
             "roteamento":self.roteamento
         }
         
         # Salvar em um arquivo JSON
-        with open('config.json', 'w') as f:
+        with open('Projeto/config.json', 'w') as f:
             json.dump(data, f)
 
     def calcular_energia(self, mapeamento):
@@ -243,7 +398,6 @@ class GraphApp:
                 if bandwidth > 0 :  # Se há comunicação entre as tarefas i e j
                     # Encontra a posição de i no mapeamento
                     ix, iy = [(k, l) for k in range(m) for l in range(m) if mapeamento[k][l] == i][0]
-                    # Encontra a posição de j no mapeamento
                     jx, jy = [(k, l) for k in range(m) for l in range(m) if mapeamento[k][l] == j][0]
                     # Calcula a distância Manhattan
                     man_dist = abs(ix - jx) + abs(iy - jy)
@@ -252,7 +406,7 @@ class GraphApp:
 
         return valor_final
     
-    def calcular_tolerancia_falha(matriz):
+    def calcular_tolerancia_falha(self, matriz):
         # Direções para as células adjacentes (cima, baixo, esquerda, direita)
         direcoes = [(-1, 0), (1, 0), (0, -1), (0, 1)]
         tolerancia = 0

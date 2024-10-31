@@ -225,7 +225,7 @@ def encontrar_posicao(tarefa):
 def animar_pacote():
     global direcoes
     direcoes = noc.rodar(2)
-    print(direcoes)
+
     
     # Passa por todos os pacotes que possuem uma direção definida no dicionário de direções
     for id_pacote, direcao in direcoes.items():
@@ -285,9 +285,7 @@ canvas.pack()
 matrix_adj, melhor_mapeamento , tam , roteamento = carregar_config_json()
 Pacote.resetar_contador()
 noc = Noc(tam[0] ,roteamento, matrix_adj, melhor_mapeamento)
-for i in range(tam[0]):
-           for j in range(tam[0]):
-               print(i,j, noc.matriz_roteadores[i][j].buffers)
+
 
 global dicionario_pacotes
 dicionario_pacotes = {}
@@ -303,7 +301,7 @@ for i in range(tam[0]):
                         "i" : (pacote_generico.posicao_destino[0],pacote_generico.posicao_destino[1]),
                         "f":(pacote_generico.posicao_destino[0],pacote_generico.posicao_destino[1])
                         }
-print(dicionario_pacotes)
+
                
 centros_maiores, centros_menores = desenhar_matriz(tam[0])
 criar_pacotes_e_alocar()

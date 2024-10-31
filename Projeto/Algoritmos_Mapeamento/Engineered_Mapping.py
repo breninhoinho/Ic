@@ -1,4 +1,4 @@
-def Engineered_Mapping(cores_noc, tam, padrao_distribuicao, traversal , transition):
+def Run_Engineered_Mapping(cores_noc, tam, padrao_distribuicao, traversal , transition):
     # Número de núcleos ociosos
     numero_cores_ociosos = len(cores_noc) * len(cores_noc)
     
