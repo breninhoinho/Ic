@@ -3,7 +3,7 @@ import numpy as np
 import sys
 
 # Adicionar o caminho absoluto do diretório onde está o arquivo
-sys.path.append('/home/breninhoinho/Desktop/Ic/Projeto/')
+#sys.path.append('/home/breninhoinho/Desktop/Ic/Projeto/')
 
 from Noc import *
 

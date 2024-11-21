@@ -1,1 +1,1 @@
-{"matriz_adj": [[0, 1, 1], [1, 0, 1], [1, 1, 0]], "melhor_mapeamento": [["", 2, ""], [0, 1, ""], ["", "", ""]], "n": [3, 3], "roteamento": "XY"}
+{"matriz_adj": [[0, 1, 0], [1, 0, 1], [0, 1, 0]], "melhor_mapeamento": [["", "", ""], ["", "", 2], ["", 0, 1]], "n": [3, 3], "roteamento": "Negative First"}
