@@ -138,7 +138,7 @@ def desenhar_matriz(n):
     # Adicionando texto no canto direito
 
     # Caminho para a imagem original
-    image_path = "Projeto/grafo.png"
+    image_path = "Ic/Projeto/grafo.png"
 
     # Abre a imagem
     imagem1 = Image.open(image_path)
@@ -147,9 +147,9 @@ def desenhar_matriz(n):
     imagem_redimensionada = imagem1.resize((350, 350))
 
     # Salva a nova imagem (opcional)
-    imagem_redimensionada.save("Projeto/grafo_600x600.png")
+    imagem_redimensionada.save("Ic/Projeto/grafo_600x600.png")
     
-    image_path = "Projeto/grafo_600x600.png"
+    image_path = "Ic/Projeto/grafo_600x600.png"
     imagem = Image.open(image_path)
     
     # Converte a imagem para ser usada no Tkinter
@@ -285,7 +285,7 @@ def animar_pacote():
 
 
 def carregar_config_json():
-    with open('Projeto/config.json', 'r') as f:
+    with open('Ic/Projeto/config.json', 'r') as f:
         config = json.load(f)
     
     return config['matriz_adj'], config['melhor_mapeamento'], config['n'], config['roteamento']
