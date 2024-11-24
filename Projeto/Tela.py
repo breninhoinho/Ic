@@ -164,8 +164,8 @@ def desenhar_matriz(n):
     canvas.create_text(largura_canvas-50 - 150, altura_canvas +130 -1000, text=f"Grafo do Problema: ", fill="black", font=("Arial", 12, "bold"))
     canvas.create_image(x_pos, y_pos, image=imagem_tk)
 
-    canvas.create_text(largura_canvas-30 - 100, altura_canvas+130 -600, text=f"Roteamento:{roteamento} ", fill="black", font=("Arial", 12, "bold"), anchor="e")
-    canvas.create_rectangle(largura_canvas-30-180, altura_canvas+130-560, largura_canvas-30 + 40-180, altura_canvas+130 + 40-560, fill="orange")
+    canvas.create_text(largura_canvas-30 - 100, altura_canvas+130 -600 - 30 +15, text=f"Roteamento:{roteamento} ", fill="black", font=("Arial", 12, "bold"), anchor="e")
+    canvas.create_rectangle(largura_canvas-30 -180, altura_canvas+130-560, largura_canvas-30  + 40-180, altura_canvas+130 + 40-560, fill="orange")
     canvas.create_text(largura_canvas-30 + 20-180, altura_canvas+130 + 20-560, text="CPU", fill="black", font=("Arial", 12, "bold"))
     canvas.create_text(largura_canvas-30 + 20-180, altura_canvas+130 + 20-500, text="Melhor Mapeamento: ", fill="black", font=("Arial", 12, "bold"))
     tamanho_matriz_mapeamento = (300-(10*3)) / n
@@ -223,9 +223,26 @@ def encontrar_posicao(tarefa):
 
 # Função para animar um pacote com base no dicionário de controle
 def animar_pacote():
-    global direcoes
+    global direcoes , arbitro, id_texto_arbitro
     direcoes = noc.rodar(2)
+    
+    #ajustar árbitro
+    arbitro += 1
+    lista_Árbitro = [ "Oeste", "Cpu", "Norte", "Leste", "Sul"]
 
+    # Remover texto antigo do árbitro, se existir
+    try:
+        if id_texto_arbitro:
+            canvas.delete(id_texto_arbitro)
+    except NameError:
+        pass
+
+    # Adicionar novo texto do árbitro e armazenar o ID
+    id_texto_arbitro = canvas.create_text(
+        largura_canvas - 30 - 100 -10, altura_canvas + 130 - 600 + 15,
+        text=f"Árbitro: {lista_Árbitro[arbitro % 5]}",
+        fill="black", font=("Arial", 12, "bold"), anchor="e"
+    )
     
     # Passa por todos os pacotes que possuem uma direção definida no dicionário de direções
     for id_pacote, direcao in direcoes.items():
@@ -273,6 +290,8 @@ def carregar_config_json():
     
     return config['matriz_adj'], config['melhor_mapeamento'], config['n'], config['roteamento']
 
+global arbitro 
+arbitro = 0
 
 # Criação da janela principal e do canvas
 janela = tk.Tk()
@@ -280,6 +299,7 @@ largura_canvas = 1600
 altura_canvas = 900
 canvas = tk.Canvas(janela, width=largura_canvas, height=altura_canvas,bg='white')
 canvas.pack()
+
 
 # Armazena as informações passadas
 matrix_adj, melhor_mapeamento , tam , roteamento = carregar_config_json()

@@ -324,7 +324,7 @@ class GraphApp:
             nome_menor_energia = min(latencia, key=latencia.get)
             valor_menor_energia = latencia[nome_menor_energia]
 
-
+            
             # Atribuir o cores_noc correspondente ao menor valor de energia
             melhor_map = mapas_noc[nome_menor_energia]
 
