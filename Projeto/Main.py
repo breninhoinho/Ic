@@ -212,7 +212,7 @@ class GraphApp:
         self.matrix_input_window.columnconfigure(0, weight=1)
 
     def mapeamentos(self):
-        tempo_limite = 3
+        tempo_limite = 20
         try:
             # Usando ThreadPoolExecutor para definir o tempo limite
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -225,7 +225,11 @@ class GraphApp:
             print(f"Erro ao executar Run_Genetic_Algorithm: {e}")
             cores_noc = None
         
-        cores_noc2 = Run_Andean_condor(self.matrix, self.dimensao[0])
+        try:
+            cores_noc2 = Run_Andean_condor(self.matrix, self.dimensao[0])
+        except Exception as e:
+                cores_noc2 = []
+        
         cores_noc3 = Run_Random(self.matrix, self.dimensao[0])
         cores_noc41 = Run_Single_Objective(self.matrix, self.dimensao[0], "Energia")
         cores_noc4 = [["" for _ in range(self.dimensao[1])] for _ in range(self.dimensao[0])]
@@ -274,9 +278,11 @@ class GraphApp:
             # Encontrar a variável com o menor valor de energia
             nome_menor_energia = min(energias, key=energias.get)
             valor_menor_energia = energias[nome_menor_energia]
-
+            print(nome_menor_energia, )
             # Atribuir o cores_noc correspondente ao menor valor de energia
             melhor_map = mapas_noc[nome_menor_energia]
+            print(energias)
+            print(nome_menor_energia, melhor_map)
         elif self.selecao[1] == 1:
 
             try:
