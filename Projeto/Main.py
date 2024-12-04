@@ -168,7 +168,7 @@ class GraphApp:
         
         nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=500, font_size=10, font_weight='bold')
         nx.draw_networkx_edge_labels(G, pos, edge_labels=edge_labels)
-        plt.savefig("Ic/Projeto/grafo.png", format="PNG")
+        plt.savefig("grafo.png", format="PNG")
         plt.show()
         
         self.verificação_da_corretude()
@@ -377,10 +377,12 @@ class GraphApp:
             nome_menor_energia = min(tolerancia, key=tolerancia.get)
             valor_menor_energia = tolerancia[nome_menor_energia]
 
+            
+
 
             # Atribuir o cores_noc correspondente ao menor valor de energia
             melhor_map = mapas_noc[nome_menor_energia]
-
+            print(tolerancia,mapas_noc,nome_menor_energia)
 
         data = {
             "matriz_adj": self.matrix,
@@ -390,7 +392,7 @@ class GraphApp:
         }
         
         # Salvar em um arquivo JSON
-        with open('Ic/Projeto/config.json', 'w') as f:
+        with open('config.json', 'w') as f:
             json.dump(data, f)
 
     def calcular_energia(self, mapeamento):

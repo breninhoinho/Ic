@@ -138,18 +138,18 @@ def desenhar_matriz(n):
     # Adicionando texto no canto direito
 
     # Caminho para a imagem original
-    image_path = "Ic/Projeto/grafo.png"
+    image_path = "grafo.png"
 
     # Abre a imagem
     imagem1 = Image.open(image_path)
 
-    # Redimensiona a imagem para 600x600 pixels
-    imagem_redimensionada = imagem1.resize((350, 350))
+    # Redimensiona a imagem para 200x200 pixels
+    imagem_redimensionada = imagem1.resize((200, 200))
 
-    # Salva a nova imagem (opcional)
-    imagem_redimensionada.save("Ic/Projeto/grafo_600x600.png")
+    # Salva a nova imagem 
+    imagem_redimensionada.save("grafo_red.png")
     
-    image_path = "Ic/Projeto/grafo_600x600.png"
+    image_path = "grafo_red.png"
     imagem = Image.open(image_path)
     
     # Converte a imagem para ser usada no Tkinter
@@ -157,22 +157,22 @@ def desenhar_matriz(n):
     imagem_tk = ImageTk.PhotoImage(imagem)
 
     # Posição inicial (para centralizar)
-    x_pos = largura_canvas - 200
+    x_pos = largura_canvas - 150
     y_pos = altura_canvas -730+80
 
     # Adiciona a imagem ao canvas
-    canvas.create_text(largura_canvas-50 - 150, altura_canvas +130 -1000, text=f"Grafo do Problema: ", fill="black", font=("Arial", 12, "bold"))
-    canvas.create_image(x_pos, y_pos, image=imagem_tk)
+    canvas.create_text(largura_canvas+100-50 - 150, altura_canvas +130 -1000 + 150, text=f"Grafo do Problema: ", fill="black", font=("Arial", 12, "bold"))
+    canvas.create_image(x_pos +50 , y_pos + 180, image=imagem_tk)
 
-    canvas.create_text(largura_canvas-30 - 100, altura_canvas+130 -600 - 30 +15, text=f"Roteamento:{roteamento} ", fill="black", font=("Arial", 12, "bold"), anchor="e")
-    canvas.create_rectangle(largura_canvas-30 -180, altura_canvas+130-560, largura_canvas-30  + 40-180, altura_canvas+130 + 40-560, fill="orange")
-    canvas.create_text(largura_canvas-30 + 20-180, altura_canvas+130 + 20-560, text="CPU", fill="black", font=("Arial", 12, "bold"))
-    canvas.create_text(largura_canvas-30 + 20-180, altura_canvas+130 + 20-500, text="Melhor Mapeamento: ", fill="black", font=("Arial", 12, "bold"))
-    tamanho_matriz_mapeamento = (300-(10*3)) / n
+    canvas.create_text(largura_canvas+100-30 - 100, altura_canvas+130 -600 - 30 +15+150, text=f"Roteamento:{roteamento} ", fill="black", font=("Arial", 12, "bold"), anchor="e")
+    canvas.create_rectangle(largura_canvas+100-30 -180, altura_canvas+130-560+150, largura_canvas+100-30  + 40-180, altura_canvas+130 + 40-560+150, fill="orange")
+    canvas.create_text(largura_canvas+100-30 + 20-180, altura_canvas+130 + 20-560+150, text="CPU", fill="black", font=("Arial", 12, "bold"))
+    canvas.create_text(largura_canvas+80-30 + 20-180, altura_canvas+130 + 20-500+150, text="Melhor Mapeamento: ", fill="black", font=("Arial", 12, "bold"))
+    tamanho_matriz_mapeamento = (150-(10*3)) / n
     for i in range(n):  # Exemplo de 3 linhas
         for j in range(n):  # Exemplo de 3 colunas
-            x1_mapeamento = (largura_canvas-330) + j * (tamanho_matriz_mapeamento + 10)
-            y1_mapeamento = (altura_canvas+130 -450) + i * (tamanho_matriz_mapeamento + 10)
+            x1_mapeamento = (largura_canvas-330+150) + j * (tamanho_matriz_mapeamento + 10)
+            y1_mapeamento = (altura_canvas+130 -450+150) + i * (tamanho_matriz_mapeamento + 10)
             canvas.create_rectangle(x1_mapeamento, y1_mapeamento, x1_mapeamento + tamanho_matriz_mapeamento, y1_mapeamento + tamanho_matriz_mapeamento, fill="lightgreen")
             canvas.create_text(x1_mapeamento + tamanho_matriz_mapeamento // 2, y1_mapeamento + tamanho_matriz_mapeamento // 2, text=f"{melhor_mapeamento[i][j]}", fill="black", font=("Arial", 10, "bold"))
 
@@ -239,7 +239,7 @@ def animar_pacote():
 
     # Adicionar novo texto do árbitro e armazenar o ID
     id_texto_arbitro = canvas.create_text(
-        largura_canvas - 30 - 100 -10, altura_canvas + 130 - 600 + 15,
+        largura_canvas+100 - 30 - 100 -10, altura_canvas + 130 - 600 + 15 +150,
         text=f"Árbitro: {lista_Árbitro[arbitro % 5]}",
         fill="black", font=("Arial", 12, "bold"), anchor="e"
     )
@@ -285,7 +285,7 @@ def animar_pacote():
 
 
 def carregar_config_json():
-    with open('Ic/Projeto/config.json', 'r') as f:
+    with open('config.json', 'r') as f:
         config = json.load(f)
     
     return config['matriz_adj'], config['melhor_mapeamento'], config['n'], config['roteamento']
@@ -295,8 +295,8 @@ arbitro = 0
 
 # Criação da janela principal e do canvas
 janela = tk.Tk()
-largura_canvas = 1600
-altura_canvas = 900
+largura_canvas = 1000
+altura_canvas = 600
 canvas = tk.Canvas(janela, width=largura_canvas, height=altura_canvas,bg='white')
 canvas.pack()
 
