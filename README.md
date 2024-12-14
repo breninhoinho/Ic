@@ -4,11 +4,11 @@
 
 - Anaconda ou Miniconda instalado no sistema.
 - Python 3 configurado e funcional.
-- Ide de sua preferência.
+- VScode ou linha de comando.
 
 ## Como executar o projeto
 
-1. **Abra sua IDE utilizando o Anaconda Navigator**
+1. **Abra sua IDE utilizando o Anaconda Navigator ou o Anaconda Prompt**
 
 2. **Clone o repositório:**
    ```bash
