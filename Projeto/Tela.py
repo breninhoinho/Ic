@@ -185,7 +185,7 @@ def criar_pacotes_e_alocar():
     id_pacote = 0  # Inicia o ID dos pacotes a partir de 1
     for i in range(len(matrix_adj)):
         for j in range(len(matrix_adj[i])):
-            if j > i and matrix_adj[i][j] > 0:  # Verifica se há comunicação entre i e j
+            if matrix_adj[i][j] > 0:  # Verifica se há comunicação entre i e j
                 origem = encontrar_posicao(i)  # +1 porque as tarefas no mapeamento começam em 1
                 destino = encontrar_posicao(j)
                 

@@ -9,6 +9,8 @@ from Algoritmos_Mapeamento.Andean_condor import *
 from Algoritmos_Mapeamento.Random import *
 from Algoritmos_Mapeamento.Engineered_Mapping import *
 from Algoritmos_Mapeamento.Single_objective import *
+from Algoritmos_Mapeamento.SimulatedAnneling import *
+from Algoritmos_Mapeamento.Cluster_Based import *
 from Noc import *
 import json
 from time import sleep
@@ -212,31 +214,29 @@ class GraphApp:
         self.matrix_input_window.columnconfigure(0, weight=1)
 
     def mapeamentos(self):
-        tempo_limite = 20
+        tempo_limite = 3
         try:
-            # Usando ThreadPoolExecutor para definir o tempo limite
+           #Usando ThreadPoolExecutor para definir o tempo limite
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 future = executor.submit(Run_Genetic_Algorithm, 10000, 100, 0.5, self.matrix, self.dimensao[0])
                 cores_noc = future.result(timeout=tempo_limite)
         except concurrent.futures.TimeoutError:
             print(f"Erro: Run_Genetic_Algorithm excedeu o tempo limite de {tempo_limite} segundos.")
-            cores_noc = None  # Valor padrão em caso de timeout
+            cores_noc = None  #Valor padrão em caso de timeout
         except Exception as e:
             print(f"Erro ao executar Run_Genetic_Algorithm: {e}")
             cores_noc = None
         
         try:
-            cores_noc2 = Run_Andean_condor(self.matrix, self.dimensao[0])
+            cores_noc2 = Run_Andean_condor(self.matrix, self.dimensao[0])  
         except Exception as e:
                 cores_noc2 = []
         
         cores_noc3 = Run_Random(self.matrix, self.dimensao[0])
-        cores_noc41 = Run_Single_Objective(self.matrix, self.dimensao[0], "Energia")
-        cores_noc4 = [["" for _ in range(self.dimensao[1])] for _ in range(self.dimensao[0])]
-        for i in range(self.dimensao[0]):
-            for j in range(self.dimensao[0]):
-                if cores_noc41[i][j] != '':
-                    cores_noc4[i][j] = int(cores_noc41[i][j])
+
+        cores_noc7 = RunSimulateAnneling(self.matrix, self.dimensao[0], 1000, 0.95, 100)
+        cores_noc8 =  [['' for _ in range(self.dimensao[1])] for _ in range(self.dimensao[1])]
+        cores_noc8 = Run_Cluster_based(cores_noc8, self.matrix)
 
         if self.selecao[0] == 1:
             try:
@@ -245,26 +245,34 @@ class GraphApp:
                 en_gene = 9999999999999
 
             try:
-                en_andean = self.calcular_energia(cores_noc2)
+                 en_andean = self.calcular_energia(cores_noc2)
             except Exception as e:
-                en_andean = 9999999999999
+                 en_andean = 9999999999999
 
             try:
                 en_ramdon = self.calcular_energia(cores_noc3)
             except Exception as e:
+                print(cores_noc3, e)
                 en_ramdon = 9999999999999
 
+
             try:
-                en_single = self.calcular_energia(cores_noc4)
+                en_simu = self.calcular_energia(cores_noc7)
             except Exception as e:
-                en_single = 9999999999999
+                en_simu = 9999999999999
+            
+            try:
+                en_cluster = self.calcular_energia(cores_noc8)
+            except Exception as e:
+                en_cluster = 9999999999999
 
             # Criar um dicionário associando os nomes das variáveis de energia aos seus valores
             energias = {
                 "en_gene": en_gene,
                 "en_andean": en_andean,
                 "en_ramdon": en_ramdon,
-                "en_single": en_single
+                "en_simu": en_simu,
+                "en_cluster": en_cluster
             }
 
             # Criar um dicionário associando os nomes das variáveis aos respectivos cores_noc
@@ -272,7 +280,8 @@ class GraphApp:
                 "en_gene": cores_noc,
                 "en_andean": cores_noc2,
                 "en_ramdon": cores_noc3,
-                "en_single": cores_noc4
+                "en_simu": cores_noc7,
+                "en_cluster": cores_noc8
             }
 
             # Encontrar a variável com o menor valor de energia
@@ -284,6 +293,13 @@ class GraphApp:
             print(energias)
             print(nome_menor_energia, melhor_map)
         elif self.selecao[1] == 1:
+            ## Latencia
+            cores_noc51 = Run_Single_Objective(self.matrix, self.dimensao[0], "Latencia")
+            cores_noc5 = [["" for _ in range(self.dimensao[1])] for _ in range(self.dimensao[0])]
+            for i in range(self.dimensao[0]):
+                for j in range(self.dimensao[0]):
+                    if cores_noc51[i][j] != '':
+                        cores_noc5[i][j] = int(cores_noc51[i][j])
 
             try:
                 noc1 = Noc(self.dimensao[0], self.roteamento, self.matrix, cores_noc)
@@ -304,10 +320,22 @@ class GraphApp:
                 en_ramdon = 9999999999
 
             try:
-                noc4 = Noc(self.dimensao[0], self.roteamento, self.matrix, cores_noc4)
+                noc4 = Noc(self.dimensao[0], self.roteamento, self.matrix, cores_noc5)
                 en_single = noc4.latencia()
             except Exception as e:
                 en_single = 9999999999
+            
+            try:
+                noc5 = Noc(self.dimensao[0], self.roteamento, self.matrix, cores_noc7)
+                en_simu = noc5.latencia()
+            except Exception as e:
+                en_simu = 9999999999
+            
+            try:
+                noc6 = Noc(self.dimensao[0], self.roteamento, self.matrix, cores_noc7)
+                en_cluster = noc6.latencia()
+            except Exception as e:
+                en_cluster = 9999999999
             
 
             # Criar um dicionário associando os nomes das variáveis de energia aos seus valores
@@ -315,7 +343,8 @@ class GraphApp:
                 "en_gene": en_gene,
                 "en_andean": en_andean,
                 "en_ramdon": en_ramdon,
-                "en_single": en_single
+                "en_simu": en_simu,
+                "en_cluster": en_cluster
             }
 
             # Criar um dicionário associando os nomes das variáveis aos respectivos cores_noc
@@ -323,7 +352,8 @@ class GraphApp:
                 "en_gene": cores_noc,
                 "en_andean": cores_noc2,
                 "en_ramdon": cores_noc3,
-                "en_single": cores_noc4
+                "en_simu": cores_noc7,
+                "en_cluster": cores_noc8
             }
 
             # Encontrar a variável com o menor valor de energia
@@ -335,6 +365,13 @@ class GraphApp:
             melhor_map = mapas_noc[nome_menor_energia]
 
         elif self.selecao[2] ==1:
+                
+            cores_noc61 = Run_Single_Objective(self.matrix, self.dimensao[0], "Tolerancia")
+            cores_noc6 = [["" for _ in range(self.dimensao[1])] for _ in range(self.dimensao[0])]
+            for i in range(self.dimensao[0]):
+                for j in range(self.dimensao[0]):
+                    if cores_noc61[i][j] != '':
+                        cores_noc6[i][j] = int(cores_noc61[i][j])
 
             try:
                 en_gene = self.calcular_tolerancia_falha(cores_noc)
@@ -352,9 +389,19 @@ class GraphApp:
                 en_ramdon = 9999999999
 
             try:
-                en_single = self.calcular_tolerancia_falha(cores_noc4)
+                en_single = self.calcular_tolerancia_falha(cores_noc6)
             except Exception as e:
                 en_single = 9999999999
+
+            try:
+                en_simu = self.calcular_tolerancia_falha(cores_noc7)
+            except Exception as e:
+                en_simu = 9999999999
+                
+            try:
+                en_cluster= self.calcular_tolerancia_falha(cores_noc8)
+            except Exception as e:
+                en_cluster= 9999999999
 
 
             # Criar um dicionário associando os nomes das variáveis de energia aos seus valores
@@ -362,7 +409,8 @@ class GraphApp:
                 "en_gene": en_gene,
                 "en_andean": en_andean,
                 "en_ramdon": en_ramdon,
-                "en_single": en_single
+                "en_simu": en_simu,
+                "en_cluster": en_cluster
             }
 
             # Criar um dicionário associando os nomes das variáveis aos respectivos cores_noc
@@ -370,7 +418,8 @@ class GraphApp:
                 "en_gene": cores_noc,
                 "en_andean": cores_noc2,
                 "en_ramdon": cores_noc3,
-                "en_single": cores_noc4
+                "en_simu": cores_noc7,
+                "en_cluster": cores_noc8
             }
 
             # Encontrar a variável com o menor valor de energia
@@ -383,6 +432,8 @@ class GraphApp:
             # Atribuir o cores_noc correspondente ao menor valor de energia
             melhor_map = mapas_noc[nome_menor_energia]
             print(tolerancia,mapas_noc,nome_menor_energia)
+
+        print(self.matrix,melhor_map,self.dimensao,self.roteamento)
 
         data = {
             "matriz_adj": self.matrix,
@@ -401,7 +452,7 @@ class GraphApp:
         valor_final = 0
 
         for i in range(n):  # Percorre todas as tarefas
-            for j in range(i+1, n):  # Garante que a matriz seja percorrida uma única vez (i, j) != (j, i)
+            for j in range(n):  # Garante que a matriz seja percorrida uma única vez (i, j) != (j, i)
                 bandwidth = self.matrix[i][j]
                 if bandwidth > 0 :  # Se há comunicação entre as tarefas i e j
                     # Encontra a posição de i no mapeamento

@@ -7,6 +7,7 @@ import sys
 
 from Noc import *
 
+
 # Definir o problema de mapeamento de objetivo único
 class MappingProblemSO:
     def __init__(self, adj_matrix, num_cores, metrica):
@@ -26,19 +27,28 @@ class MappingProblemSO:
             if len(set(x)) != len(x):  # Verificar se há duplicação de valores
                 return [float('inf')]  # Penalizar soluções inválidas
 
+            # Converte o vetor solução em uma matriz de tamanho (m x m)
+            matriz = np.zeros((m, m), dtype=int)
+            for i in range(len(x)):
+                matriz[i // m][i % m] = x[i]
+
             for i in range(n):  # Percorre todas as tarefas
-                for j in range(i+1, n):  # Garante que a matriz seja percorrida uma única vez (i, j) != (j, i)
+                for j in range(i + 1, n):  # Garante que a matriz seja percorrida uma única vez (i, j) != (j, i)
                     bandwidth = self.adj_matrix[i][j]
                     if bandwidth > 0:  # Se há comunicação entre as tarefas i e j
-                        # Encontra a posição de i e j no mapeamento
-                        ix = x[i] // m
-                        iy = x[i] % m
-                        jx = x[j] // m
-                        jy = x[j] % m
-                        # Calcula a distância Manhattan
-                        man_dist = abs(ix - jx) + abs(iy - jy)
-                        # Acumula o valor da energia total
-                        valor_final += bandwidth * man_dist
+                        # Encontra a posição de i e j na matriz
+                        ix = np.where(matriz == i)
+                        jx = np.where(matriz == j)
+                        
+                        # Verifique se ambos ix e jx possuem pelo menos um valor
+                        if ix[0].size > 0 and jx[0].size > 0:
+                            # Calcula a distância Manhattan
+                            man_dist = abs(ix[0][0] - jx[0][0]) + abs(ix[1][0] - jx[1][0])
+                            # Acumula o valor da energia total
+                            valor_final += bandwidth * man_dist
+                        else:
+                            # Se uma das tarefas não foi encontrada, penaliza a solução
+                            return [float('inf')]
 
             return [valor_final]
 
@@ -128,6 +138,8 @@ def generate_initial_population(problem, size):
         population.append(solution)
     return np.array(population)
 
+
+
 def Run_Single_Objective(adj_matrix, numero_roteadores, metrica):
     resultados = {}
     # Criar uma instância do problema
@@ -161,23 +173,30 @@ def Run_Single_Objective(adj_matrix, numero_roteadores, metrica):
         best_solution = np.round(pop.get_x()[0]).astype(int)  # Melhor solução como array unidimensional
         best_fitness = pop.get_f()[0]  # Fitness da melhor solução
 
-        # Verificar se o tamanho de best_solution é menor que numero_roteadores**2
-        if len(best_solution) < numero_roteadores**2:
-            # Preencher com strings vazias para garantir o tamanho correto
-            missing_elements = numero_roteadores**2 - len(best_solution)
-            best_solution = np.concatenate([best_solution, [""] * missing_elements])
+        # Criar a matriz bidimensional para representar o grid
+        grid_size = numero_roteadores  # Tamanho do lado do grid
+        grid = np.full((grid_size, grid_size), '', dtype=object)  # Preenche com strings vazias
 
-        # Converter o array unidimensional em uma matriz de tamanho numero_roteadores x numero_roteadores
-        best_solution_matrix = best_solution.reshape((numero_roteadores, numero_roteadores))
+        # Mapear as tarefas para o grid usando os valores de best_solution como posições
+        for task_idx, pos in enumerate(best_solution):
+            row = pos // grid_size  # Linha no grid
+            col = pos % grid_size  # Coluna no grid
+            grid[row][col] = task_idx  # Atribuir o índice da tarefa à posição
 
         # Armazenar os resultados no dicionário
         resultados[name] = {
-            'matriz': best_solution_matrix,
+            'matriz': grid,
             'fitness': best_fitness,
         }
 
     # Encontrar o mapeamento com o menor fitness
     melhor_algoritmo = min(resultados, key=lambda k: resultados[k]['fitness'])
     melhor_mapeamento = resultados[melhor_algoritmo]['matriz']
+    for name, data in resultados.items():
+        print(f"Algoritmo: {name}")
+        print("Matriz de mapeamento:")
+        print(np.array(data['matriz']))  # Converte para array para visualização mais clara
+        print(f"Fitness: {data['fitness']}")
+        print("-" * 40)
 
     return melhor_mapeamento

@@ -2,17 +2,20 @@ import random
 
 def Run_Random(adj_matriz, tam):
     # Cria uma matriz 2D de listas vazias
-    cores_noc =  [['' for _ in range(tam)] for _ in range(tam)]
-    tam_cores = tam
-    
-    # Preenche a matriz aleatoriamente com os índices da adj_matriz
-    for i in range(len(adj_matriz)):
-        posicao_x = random.randint(0, tam_cores-1)
-        posicao_y = random.randint(0, tam_cores-1)
-        
-        # Adiciona o valor na posição sorteada
-        cores_noc[posicao_x][posicao_y] = i
-    
-    return cores_noc
+    cores_noc = [['' for _ in range(tam)] for _ in range(tam)]
+    tam_cores = tam * tam  # Total de posições na matriz
 
+    # Gera uma lista de índices de adj_matriz embaralhados
+    indices = list(range(len(adj_matriz)))
+    random.shuffle(indices)
+
+    # Preenche a matriz sequencialmente com os índices embaralhados
+    k = 0
+    for i in range(tam):
+        for j in range(tam):
+            if k < len(indices):
+                cores_noc[i][j] = indices[k]
+                k += 1
+
+    return cores_noc
 

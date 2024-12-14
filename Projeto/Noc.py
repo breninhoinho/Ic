@@ -30,7 +30,7 @@ class Noc:
     def criar_pacotes_e_alocar(self):
         for i in range(len(self.matriz_adjacencia)):
             for j in range(len(self.matriz_adjacencia[i])):
-                if j > i and self.matriz_adjacencia[i][j] > 0:  # Verifica se há comunicação entre i e j
+                if self.matriz_adjacencia[i][j] > 0:  
                     origem = self.encontrar_posicao(i)
                     destino = self.encontrar_posicao(j)
                     pacote = Pacote(origem, destino, 0, self.matriz_adjacencia[i][j])
