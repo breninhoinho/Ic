@@ -4,23 +4,35 @@ from Algoritmos_Mapeamento.Andean_condor import *
 from Algoritmos_Mapeamento.Random import *
 from Algoritmos_Mapeamento.SimulatedAnneling import *
 from Algoritmos_Mapeamento.Cluster_Based import *
+from Algoritmos_Mapeamento.PSO import *
 import numpy as np
 
 
-tamanho = 4
+tamanho =6
 
-matriz = [[0, 61.3, 0, 38.47, 0, 0, 0, 0],
-[0, 0, 55.73, 0, 0, 0, 0, 48.59],
-[0, 0, 0, 0, 43.7, 0, 0, 0],
-[0, 0, 0, 0, 0, 56.69, 43.7, 0],
-[0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0],
-[0, 0, 0, 0, 0, 0, 0, 0]]
+matriz = [
+    [0.0, 3.0, 712.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 6.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 712.0, 30.0, 15.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 712.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 30.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 20.0],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 15.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 712.0, 712.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1424.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 45.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 45.0, 0.0, 1424.0, 4.0, 4.0, 8.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 4.0, 0.0],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+    [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+]
+
 
 def calcular_energia(mapeamento,matriz):
-        n =  8 # Número de tarefas
-        m = 4  # Dimensão da NoC
+        n =  16 # Número de tarefas
+        m = 6  # Dimensão da NoC
         valor_final = 0
 
         for i in range(n):  # Percorre todas as tarefas
@@ -46,12 +58,14 @@ soma_andean = 0
 soma_ramd = 0
 soma_simu = 0
 soma_cluster = 0
+soma_PSO = 0
 
 resultados_gen = []
 resultados_andean = []
 resultados_ramd = []
 resultados_simu = []
 resultados_cluster = []
+resultados_PSO = []
 
 
 # Loop para as 30 iterações
@@ -68,6 +82,8 @@ for i in range(30):
     cores_noc5 =  [['' for _ in range(tamanho)] for _ in range(tamanho)]
     cores_noc5 = Run_Cluster_based(cores_noc5, matriz)
 
+    cores_noc6 = Run_pso(matriz,tamanho)
+
     
     
     
@@ -77,12 +93,14 @@ for i in range(30):
     energia_ramd = calcular_energia(cores_noc3, matriz)
     energia_simu = calcular_energia(cores_noc4, matriz)
     energia_cluster = calcular_energia(cores_noc5, matriz)
+    energia_PSO = calcular_energia(cores_noc6, matriz)
 
     soma_gen += energia_gen
     soma_andean += energia_andean
     soma_ramd += energia_ramd
     soma_simu+= energia_simu
     soma_cluster += energia_cluster
+    soma_PSO += energia_PSO
 
     #print(energia_andean,energia_cluster,energia_gen,energia_simu, energia_ramd)
 
@@ -92,6 +110,7 @@ for i in range(30):
     resultados_ramd.append(energia_ramd)
     resultados_simu.append(energia_simu)
     resultados_cluster.append(energia_cluster)
+    resultados_PSO.append(energia_PSO)
 
 
 # Calcular a média e o desvio padrão para os outros algoritmos
@@ -115,6 +134,10 @@ estatisticas_outros = {
     'Cluster Based': {
         'Média': np.mean(resultados_cluster),
         'Desvio Padrão': np.std(resultados_cluster)
+    },
+    'PSO': {
+        'Média': np.mean(resultados_PSO),
+        'Desvio Padrão': np.std(resultados_PSO)
     },
 }
 

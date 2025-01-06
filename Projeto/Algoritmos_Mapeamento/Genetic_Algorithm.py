@@ -242,10 +242,10 @@ class Populacao:
         n = len(self.matriz_adjacencia)  # Número de tarefas
         m = len(self.populacao)  # Dimensão da NoC
         valor_final = 0
-
         for i in range(n):  # Percorre todas as tarefas
             for j in range(n):  # Garante que a matriz seja percorrida uma única vez (i, j) != (j, i)
                 bandwidth = self.matriz_adjacencia[i][j]
+
                 if bandwidth > 0 :  # Se há comunicação entre as tarefas i e j
                     # Encontra a posição de i no self.populacao
                     ix, iy = [(k, l) for k in range(m) for l in range(m) if self.populacao[k][l] == i][0]

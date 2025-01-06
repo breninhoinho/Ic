@@ -8,7 +8,6 @@ from Algoritmos_Mapeamento.Genetic_Algorithm import *
 from Algoritmos_Mapeamento.Andean_condor import *
 from Algoritmos_Mapeamento.Random import *
 from Algoritmos_Mapeamento.Engineered_Mapping import *
-from Algoritmos_Mapeamento.Single_objective import *
 from Algoritmos_Mapeamento.SimulatedAnneling import *
 from Algoritmos_Mapeamento.Cluster_Based import *
 from Noc import *
@@ -214,7 +213,7 @@ class GraphApp:
         self.matrix_input_window.columnconfigure(0, weight=1)
 
     def mapeamentos(self):
-        tempo_limite = 3
+        tempo_limite = 20
         try:
            #Usando ThreadPoolExecutor para definir o tempo limite
             with concurrent.futures.ThreadPoolExecutor() as executor:
@@ -294,12 +293,6 @@ class GraphApp:
             print(nome_menor_energia, melhor_map)
         elif self.selecao[1] == 1:
             ## Latencia
-            cores_noc51 = Run_Single_Objective(self.matrix, self.dimensao[0], "Latencia")
-            cores_noc5 = [["" for _ in range(self.dimensao[1])] for _ in range(self.dimensao[0])]
-            for i in range(self.dimensao[0]):
-                for j in range(self.dimensao[0]):
-                    if cores_noc51[i][j] != '':
-                        cores_noc5[i][j] = int(cores_noc51[i][j])
 
             try:
                 noc1 = Noc(self.dimensao[0], self.roteamento, self.matrix, cores_noc)
@@ -319,11 +312,6 @@ class GraphApp:
             except Exception as e:
                 en_ramdon = 9999999999
 
-            try:
-                noc4 = Noc(self.dimensao[0], self.roteamento, self.matrix, cores_noc5)
-                en_single = noc4.latencia()
-            except Exception as e:
-                en_single = 9999999999
             
             try:
                 noc5 = Noc(self.dimensao[0], self.roteamento, self.matrix, cores_noc7)
@@ -366,12 +354,7 @@ class GraphApp:
 
         elif self.selecao[2] ==1:
                 
-            cores_noc61 = Run_Single_Objective(self.matrix, self.dimensao[0], "Tolerancia")
-            cores_noc6 = [["" for _ in range(self.dimensao[1])] for _ in range(self.dimensao[0])]
-            for i in range(self.dimensao[0]):
-                for j in range(self.dimensao[0]):
-                    if cores_noc61[i][j] != '':
-                        cores_noc6[i][j] = int(cores_noc61[i][j])
+
 
             try:
                 en_gene = self.calcular_tolerancia_falha(cores_noc)
@@ -388,10 +371,6 @@ class GraphApp:
             except Exception as e:
                 en_ramdon = 9999999999
 
-            try:
-                en_single = self.calcular_tolerancia_falha(cores_noc6)
-            except Exception as e:
-                en_single = 9999999999
 
             try:
                 en_simu = self.calcular_tolerancia_falha(cores_noc7)
