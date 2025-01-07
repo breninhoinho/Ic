@@ -2,13 +2,12 @@
 
 ## Requisitos
 
-- Anaconda ou Miniconda instalado no sistema.
 - Python 3 configurado e funcional.
 - VScode ou linha de comando.
 
 ## Como executar o projeto
 
-1. **Abra sua IDE utilizando o Anaconda Navigator ou o Anaconda Prompt**
+1. **Abra sua IDE ou via CMD**
 
 2. **Clone o repositório:**
    ```bash
@@ -18,7 +17,7 @@
    cd Ic/Projeto
 4. **Instale as bibliotecas necessárias**
    ```bash
-   conda install -c conda-forge matplotlib networkx pygmo
+   pip install matplotlib networkx numpy
 
 6. **Rode a o arquivo Main**
    ```bash
