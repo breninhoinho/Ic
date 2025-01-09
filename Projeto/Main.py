@@ -10,6 +10,7 @@ from Algoritmos_Mapeamento.Random import *
 from Algoritmos_Mapeamento.Engineered_Mapping import *
 from Algoritmos_Mapeamento.SimulatedAnneling import *
 from Algoritmos_Mapeamento.Cluster_Based import *
+from Algoritmos_Mapeamento.PSO import *
 from Noc import *
 import json
 from time import sleep
@@ -236,6 +237,7 @@ class GraphApp:
         cores_noc7 = RunSimulateAnneling(self.matrix, self.dimensao[0], 1000, 0.95, 100)
         cores_noc8 =  [['' for _ in range(self.dimensao[1])] for _ in range(self.dimensao[1])]
         cores_noc8 = Run_Cluster_based(cores_noc8, self.matrix)
+        cores_noc9 = Run_pso(self.matrix,self.dimensao[1])
 
         if self.selecao[0] == 1:
             try:
@@ -254,7 +256,6 @@ class GraphApp:
                 print(cores_noc3, e)
                 en_ramdon = 9999999999999
 
-
             try:
                 en_simu = self.calcular_energia(cores_noc7)
             except Exception as e:
@@ -265,13 +266,19 @@ class GraphApp:
             except Exception as e:
                 en_cluster = 9999999999999
 
+            try:
+                en_pso = self.calcular_energia(cores_noc9)
+            except Exception as e:
+                en_pso = 9999999999999
+
             # Criar um dicionário associando os nomes das variáveis de energia aos seus valores
             energias = {
                 "en_gene": en_gene,
                 "en_andean": en_andean,
                 "en_ramdon": en_ramdon,
                 "en_simu": en_simu,
-                "en_cluster": en_cluster
+                "en_cluster": en_cluster,
+                "en_pso": en_pso
             }
 
             # Criar um dicionário associando os nomes das variáveis aos respectivos cores_noc
@@ -280,17 +287,22 @@ class GraphApp:
                 "en_andean": cores_noc2,
                 "en_ramdon": cores_noc3,
                 "en_simu": cores_noc7,
-                "en_cluster": cores_noc8
+                "en_cluster": cores_noc8,
+                "en_pso": cores_noc9
             }
 
             # Encontrar a variável com o menor valor de energia
             nome_menor_energia = min(energias, key=energias.get)
             valor_menor_energia = energias[nome_menor_energia]
-            print(nome_menor_energia, )
             # Atribuir o cores_noc correspondente ao menor valor de energia
             melhor_map = mapas_noc[nome_menor_energia]
-            print(energias)
-            print(nome_menor_energia, melhor_map)
+
+            #formatação da saida
+            for nome, energia in energias.items():
+                matriz = mapas_noc[nome]
+                matriz_str = ", ".join(str(linha) for linha in matriz)
+                print(f"{nome:<15} {energia:<10.2f} {matriz_str:<30}")
+
         elif self.selecao[1] == 1:
             ## Latencia
 
@@ -300,12 +312,7 @@ class GraphApp:
             except Exception as e:
                 en_gene = 9999999999  # Valor padrão em caso de erro
 
-            try:
-                noc2 = Noc(self.dimensao[0], self.roteamento, self.matrix, cores_noc2)
-                en_andean = noc2.latencia()
-            except Exception as e:
-                en_andean = 9999999999
-
+            
             try:
                 noc3 = Noc(self.dimensao[0], self.roteamento, self.matrix, cores_noc3)
                 en_ramdon = noc3.latencia()
@@ -324,24 +331,30 @@ class GraphApp:
                 en_cluster = noc6.latencia()
             except Exception as e:
                 en_cluster = 9999999999
+
+            try:
+                noc7 = Noc(self.dimensao[0], self.roteamento, self.matrix, cores_noc9)
+                en_pso = noc7.latencia()
+            except Exception as e:
+                en_pso = 9999999999
             
 
             # Criar um dicionário associando os nomes das variáveis de energia aos seus valores
             latencia = {
                 "en_gene": en_gene,
-                "en_andean": en_andean,
                 "en_ramdon": en_ramdon,
                 "en_simu": en_simu,
-                "en_cluster": en_cluster
+                "en_cluster": en_cluster,
+                "en_pso": en_pso
             }
 
             # Criar um dicionário associando os nomes das variáveis aos respectivos cores_noc
             mapas_noc = {
                 "en_gene": cores_noc,
-                "en_andean": cores_noc2,
                 "en_ramdon": cores_noc3,
                 "en_simu": cores_noc7,
-                "en_cluster": cores_noc8
+                "en_cluster": cores_noc8,
+                "en_pso": cores_noc9
             }
 
             # Encontrar a variável com o menor valor de energia
@@ -351,11 +364,18 @@ class GraphApp:
             
             # Atribuir o cores_noc correspondente ao menor valor de energia
             melhor_map = mapas_noc[nome_menor_energia]
+            
+            # Atribuir o cores_noc correspondente ao menor valor de energia
+            melhor_map = mapas_noc[nome_menor_energia]
+
+            #formatação da saida
+            for nome, energia in latencia.items():
+                matriz = mapas_noc[nome]
+                matriz_str = ", ".join(str(linha) for linha in matriz)
+                print(f"{nome:<15} {energia:<10.2f} {matriz_str:<30}")
 
         elif self.selecao[2] ==1:
                 
-
-
             try:
                 en_gene = self.calcular_tolerancia_falha(cores_noc)
             except Exception as e:
@@ -370,8 +390,7 @@ class GraphApp:
                 en_ramdon = self.calcular_tolerancia_falha(cores_noc3)
             except Exception as e:
                 en_ramdon = 9999999999
-
-
+                
             try:
                 en_simu = self.calcular_tolerancia_falha(cores_noc7)
             except Exception as e:
@@ -382,6 +401,12 @@ class GraphApp:
             except Exception as e:
                 en_cluster= 9999999999
 
+            try:
+                en_pso= self.calcular_tolerancia_falha(cores_noc9)
+            except Exception as e:
+                en_pso= 9999999999
+            
+
 
             # Criar um dicionário associando os nomes das variáveis de energia aos seus valores
             tolerancia = {
@@ -389,7 +414,8 @@ class GraphApp:
                 "en_andean": en_andean,
                 "en_ramdon": en_ramdon,
                 "en_simu": en_simu,
-                "en_cluster": en_cluster
+                "en_cluster": en_cluster,
+                "en_pso": en_pso
             }
 
             # Criar um dicionário associando os nomes das variáveis aos respectivos cores_noc
@@ -398,21 +424,23 @@ class GraphApp:
                 "en_andean": cores_noc2,
                 "en_ramdon": cores_noc3,
                 "en_simu": cores_noc7,
-                "en_cluster": cores_noc8
+                "en_cluster": cores_noc8,
+                "en_pso": cores_noc9
             }
 
             # Encontrar a variável com o menor valor de energia
             nome_menor_energia = min(tolerancia, key=tolerancia.get)
             valor_menor_energia = tolerancia[nome_menor_energia]
 
-            
-
-
             # Atribuir o cores_noc correspondente ao menor valor de energia
             melhor_map = mapas_noc[nome_menor_energia]
-            print(tolerancia,mapas_noc,nome_menor_energia)
 
-        print(self.matrix,melhor_map,self.dimensao,self.roteamento)
+            #formatação da saida
+            for nome, energia in tolerancia.items():
+                matriz = mapas_noc[nome]
+                matriz_str = ", ".join(str(linha) for linha in matriz)
+                print(f"{nome:<15} {energia:<10.2f} {matriz_str:<30}")
+                            
 
         data = {
             "matriz_adj": self.matrix,

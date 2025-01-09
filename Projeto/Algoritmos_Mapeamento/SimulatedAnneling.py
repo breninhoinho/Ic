@@ -68,8 +68,7 @@ def RunSimulateAnneling(task_adjacency_matrix, num_nodes, initial_temp, cooling_
         # refriamento
         temperature *= cooling_rate
 
-    return best_mapping
-
+    return best_mapping.tolist()
 
 # task_adjacency_matrix = [
 #     [0, 3, 2, 0],  

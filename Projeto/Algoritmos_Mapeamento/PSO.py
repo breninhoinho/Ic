@@ -101,5 +101,6 @@ def Run_pso(matriz_adjacencia, tamanho_noc, num_particulas=1000, max_iter=100, w
         for j in range(tamanho_noc):
             if gbest[i][j] == -1:
                 gbest[i][j] = ''
+                
     return gbest
 
