@@ -94,12 +94,12 @@ def Run_pso(matriz_adjacencia, tamanho_noc, num_particulas=1000, max_iter=1000, 
             if gbest[i][j] == -1:
                 gbest[i][j] = ''
                 
-    plt.plot(fitness_values)
-    plt.xlabel("Iteração")
-    plt.ylabel("Melhor Fitness (Custo)")
-    plt.title("Evolução do Fitness ao Longo das Iterações")
-    plt.show()
+    
     return gbest, gbest_valor
+
+
+"""
+q
 
 # Exemplo de uso
 tam = 4
@@ -127,3 +127,4 @@ for linha in final_mapping:
     print(linha)
 print("Fitness da melhor solução:", cost)
 print()
+"""
