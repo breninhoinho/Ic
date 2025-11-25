@@ -7,10 +7,10 @@ from Algoritmos_Mapeamento.Cluster_Based import *
 from Algoritmos_Mapeamento.PSO import *
 import numpy as np
 
+tamanho = 6
 
-tamanho =6
-
-matriz = [
+# MATRIZ ORIGINAL
+matriz_cavalc = [
     [0.0, 3.0, 712.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     [0.0, 0.0, 6.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
     [0.0, 0.0, 0.0, 712.0, 30.0, 15.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -29,122 +29,153 @@ matriz = [
     [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
 ]
 
+matriz_mwd = [
+[  0,128, 64,  0,  0,  0,  0,  0,  0,  0,  0,  0],  # 0
+[  0,  0,  0, 96,  0,  0,  0,  0,  0,  0,  0,  0],  # 1
+[  0,  0,  0,  0,  0,  0,  0,  0, 64, 96,  0,  0],  # 2
+[  0,  0,  0,  0, 96,  0,  0,  0,  0,  0,  0,  0],  # 3
+[  0,  0,  0,  0,  0, 96,  0,  0,  0,  0,  0,  0],  # 4
+[  0,  0,  0,  0,  0,  0, 64,  0,  0,  0,  0,  0],  # 5
+[  0,  0,  0,  0,  0,  0,  0, 64,  0,  0,  0,  0],  # 6
+[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],  # 7
+[  0,  0,  64, 0,  0,  0,  0,  0,  0,  0,  0,  0],  # 8
+[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 96,  0],  # 9
+[  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0, 96],  # 10
+[  0,  0,  0,  0,  0, 96,  0,  0,  0,  0,  0,  0],  # 11
+]
 
-def calcular_energia(mapeamento,matriz):
-        n =  16 # Número de tarefas
-        m = 6  # Dimensão da NoC
-        valor_final = 0
+matriz_mpeg4 = [
+[  0, 64,  3,  1, 20,  0,200,304,  0, 11,  0,  0],  # 0
+[ 64,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],  # 1
+[  3,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],  # 2
+[  1,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0,  0],  # 3
+[ 20,  0,  0,  0,  0, 14,  0,  0,  0,  0,  0,  0],  # 4
+[  0,  0,  0,  0, 14,  0, 40,  0,  0,  0,  0,  0],  # 5
+[200,  0,  0,  0,  0, 40,  0,  0,  0,  0,  0,  0],  # 6
+[304,  0,  0,  0,  0,  0,  0,  0,224,  0,  0,  0],  # 7
+[  0,  0,  0,  0,  0,  0,  0,224,  0, 58, 84,167],  # 8
+[ 11,  0,  0,  0,  0,  0,  0,  0, 58,  0,  0,  0],  # 9
+[  0,  0,  0,  0,  0,  0,  0,  0, 84,  0,  0,  0],  # 10
+[  0,  0,  0,  0,  0,  0,  0,  0,167,  0,  0,  0],  # 11
+]
 
-        for i in range(n):  # Percorre todas as tarefas
-            for j in range(n):  # Garante que a matriz seja percorrida uma única vez (i, j) != (j, i)
-                bandwidth = matriz[i][j]
-                if bandwidth > 0 :  # Se há comunicação entre as tarefas i e j
-                    # Encontra a posição de i no mapeamento
-                    ix, iy = [(k, l) for k in range(m) for l in range(m) if mapeamento[k][l] == i][0]
-                    jx, jy = [(k, l) for k in range(m) for l in range(m) if mapeamento[k][l] == j][0]
-                    # Calcula a distância Manhattan
-                    man_dist = abs(ix - jx) + abs(iy - jy)
-                    # Acumula o valor da energia total
-                    valor_final += bandwidth * man_dist
-
-
-        return valor_final
-
-
-
-# Inicializar as variáveis de soma e listas para armazenar os resultados
-soma_gen = 0
-soma_andean = 0
-soma_ramd = 0
-soma_simu = 0
-soma_cluster = 0
-soma_PSO = 0
-
-resultados_gen = []
-resultados_andean = []
-resultados_ramd = []
-resultados_simu = []
-resultados_cluster = []
-resultados_PSO = []
-
-
-# Loop para as 30 iterações
-for i in range(30):
-    # Executar os algoritmos
-    cores_noc = Run_Genetic_Algorithm(100, 100, 0.5, matriz, tamanho)
-
-    cores_noc2 = Run_Andean_condor(matriz, tamanho)
-
-    cores_noc3 = Run_Random(matriz, tamanho)
-
-    cores_noc4 = RunSimulateAnneling(matriz, tamanho,1000, 0.95, 100)
-
-    cores_noc5 =  [['' for _ in range(tamanho)] for _ in range(tamanho)]
-    cores_noc5 = Run_Cluster_based(cores_noc5, matriz)
-
-    cores_noc6 = Run_pso(matriz,tamanho)
-
-    
-    
-    
-    # Calcular energia e armazenar resultados para os outros algoritmos
-    energia_gen = calcular_energia(cores_noc, matriz)
-    energia_andean = calcular_energia(cores_noc2, matriz)
-    energia_ramd = calcular_energia(cores_noc3, matriz)
-    energia_simu = calcular_energia(cores_noc4, matriz)
-    energia_cluster = calcular_energia(cores_noc5, matriz)
-    energia_PSO = calcular_energia(cores_noc6, matriz)
-
-    soma_gen += energia_gen
-    soma_andean += energia_andean
-    soma_ramd += energia_ramd
-    soma_simu+= energia_simu
-    soma_cluster += energia_cluster
-    soma_PSO += energia_PSO
-
-    #print(energia_andean,energia_cluster,energia_gen,energia_simu, energia_ramd)
-
-
-    resultados_gen.append(energia_gen)
-    resultados_andean.append(energia_andean)
-    resultados_ramd.append(energia_ramd)
-    resultados_simu.append(energia_simu)
-    resultados_cluster.append(energia_cluster)
-    resultados_PSO.append(energia_PSO)
-
-
-# Calcular a média e o desvio padrão para os outros algoritmos
-estatisticas_outros = {
-    'Genetic Algorithm': {
-        'Média': np.mean(resultados_gen),
-        'Desvio Padrão': np.std(resultados_gen)
-    },
-    'Andean Condor': {
-        'Média': np.mean(resultados_andean),
-        'Desvio Padrão': np.std(resultados_andean)
-    },
-    'Random': {
-        'Média': np.mean(resultados_ramd),
-        'Desvio Padrão': np.std(resultados_ramd)
-    },
-    'Simulated Anneling': {
-        'Média': np.mean(resultados_simu),
-        'Desvio Padrão': np.std(resultados_simu)
-    },
-    'Cluster Based': {
-        'Média': np.mean(resultados_cluster),
-        'Desvio Padrão': np.std(resultados_cluster)
-    },
-    'PSO': {
-        'Média': np.mean(resultados_PSO),
-        'Desvio Padrão': np.std(resultados_PSO)
-    },
+matrizes = {
+    "Cavalcanti (16x16)": matriz_cavalc,
+    "MWD (12x12)": matriz_mwd,
+    "MPEG4 (12x12)": matriz_mpeg4
 }
 
-print("Estatísticas dos algoritmos:")
-for chave, stats in estatisticas_outros.items():
-    print(f"Algoritmo: {chave}")
-    print(f"  Média: {stats['Média']:.3f}")
-    print(f"  Desvio Padrão: {stats['Desvio Padrão']:.3f}")
-    print()
 
+# ==========================================================
+# FUNÇÃO GERAL PARA CALCULAR A ENERGIA
+# ==========================================================
+def calcular_energia(mapeamento, matriz):
+    n = len(matriz)              # número de tarefas (automático!)
+    m = len(mapeamento)          # tamanho da NoC (ex: 6x6)
+
+    valor_final = 0
+
+    # cria lista [(tarefa -> (x,y))]
+    posicoes = {}
+    for x in range(m):
+        for y in range(m):
+            posicoes[mapeamento[x][y]] = (x, y)
+
+    # percorre todas as comunicações
+    for i in range(n):
+        for j in range(n):
+            bw = matriz[i][j]
+            if bw > 0:
+                ix, iy = posicoes[i]
+                jx, jy = posicoes[j]
+                distancia = abs(ix - jx) + abs(iy - jy)
+                valor_final += bw * distancia
+
+    return valor_final
+
+
+# ==========================================================
+# EXECUÇÃO DOS EXPERIMENTOS
+# ==========================================================
+def rodar_experimentos():
+
+    with open("resultados_mapeamentos.txt", "w") as arquivo:
+
+        for nome_matriz, matriz in matrizes.items():
+
+            tamanho_noc = 6
+
+            arquivo.write("\n====================================\n")
+            arquivo.write(f"     RESULTADOS – {nome_matriz} \n")
+            arquivo.write("====================================\n\n")
+
+            # Vetores com todas as energias
+            resultados = {
+                "Genetic": [],
+                "Andean": [],
+                "Random": [],
+                "SimulatedA": [],
+                "Cluster": []
+            }
+
+            # Guardar melhor map de cada algoritmo
+            melhores_mapas = {
+                "Genetic": {"energia": float("inf"), "mapa": None},
+                "Andean":  {"energia": float("inf"), "mapa": None},
+                "Random":  {"energia": float("inf"), "mapa": None},
+                "SimulatedA": {"energia": float("inf"), "mapa": None},
+                "Cluster": {"energia": float("inf"), "mapa": None},
+            }
+
+            for execu in range(30):
+
+                sol_gen = Run_Genetic_Algorithm(100, 100, 0.5, matriz, tamanho_noc)
+                sol_and = Run_Andean_condor(matriz, tamanho_noc)
+                sol_rand = Run_Random(matriz, tamanho_noc)
+                sol_simu = RunSimulateAnneling(matriz, tamanho_noc, 1000, 0.95, 100)
+
+                temp_map = [['' for _ in range(tamanho_noc)] for _ in range(tamanho_noc)]
+                sol_cluster = Run_Cluster_based(temp_map, matriz)
+
+                mapas_exec = {
+                    "Genetic": sol_gen,
+                    "Andean": sol_and,
+                    "Random": sol_rand,
+                    "SimulatedA": sol_simu,
+                    "Cluster": sol_cluster
+                }
+
+                # Calcular energia
+                for alg, mapa in mapas_exec.items():
+                    energia = calcular_energia(mapa, matriz)
+                    resultados[alg].append(energia)
+
+                    # Salvar o melhor mapa
+                    if energia < melhores_mapas[alg]["energia"]:
+                        melhores_mapas[alg]["energia"] = energia
+                        melhores_mapas[alg]["mapa"] = [linha.copy() for linha in mapa]
+
+            # --- SALVAR RESULTADOS NO ARQUIVO ---
+            for alg, valores in resultados.items():
+
+                arquivo.write(f"{alg}:\n")
+                arquivo.write(f"  Média = {np.mean(valores):.3f}\n")
+                arquivo.write(f"  Desvio = {np.std(valores):.3f}\n")
+                arquivo.write(f"  Resultados = {valores}\n")
+
+                # Melhor energia + melhor mapa
+                arquivo.write(f"  Melhor Energia = {melhores_mapas[alg]['energia']}\n")
+                arquivo.write("  Melhor Mapeamento:\n")
+
+                melhor_mapa = melhores_mapas[alg]["mapa"]
+                for linha in melhor_mapa:
+                    arquivo.write("    " + str(linha) + "\n")
+
+                arquivo.write("\n")
+
+    print("\nArquivo 'resultados_mapeamentos.txt' gerado com sucesso!\n")
+
+# ==========================================================
+# RODAR
+# ==========================================================
+rodar_experimentos()
