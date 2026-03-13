@@ -86,7 +86,7 @@ def Run_pso(matriz_adjacencia, tamanho_noc, num_particulas=1000, max_iter=1000, 
             if fitness < gbest_valor:
                 gbest = copy.deepcopy(particulas[i])
                 gbest_valor = fitness
-                print("Melhor valor encontrado:", gbest_valor)
+                #print("Melhor valor encontrado:", gbest_valor)
                 fitness_values.append(gbest_valor)
 
     for i in range(tamanho_noc):

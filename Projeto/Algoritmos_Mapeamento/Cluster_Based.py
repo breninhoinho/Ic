@@ -1,207 +1,104 @@
 import random
 
 def Run_Cluster_based(cores_noc, adj_matriz):
-    custos = {}
-    soma = 0
+    import random
 
-    # Calcula os custos de comunicação para cada tarefa
-    for linha in range(len(adj_matriz)):
-        soma = 0
-        custos[str(linha)] = []
-        for coluna in range(len(adj_matriz)):
-            if adj_matriz[linha][coluna] != 0:
-                soma += adj_matriz[linha][coluna]
-                custos[str(linha)].append(coluna)
-        custos[str(linha)].append(soma)
+    def tarefa_esta_no_noc(t, noc):
+        return any(t in linha for linha in noc)
 
-    # Ordena as tarefas por custo total de comunicação (maior para menor)
-    custos_ordenado = dict(sorted(custos.items(), key=lambda item: item[1][-1], reverse=True))
+    def tiles_livres(noc):
+        return [(i, j) for i in range(len(noc)) for j in range(len(noc)) if noc[i][j] == '' or noc[i][j] is None]
 
     n = len(cores_noc)
-    rot = (random.randint(0, n - 1), random.randint(0, n - 1))  # Escolhe um núcleo inicial aleatório
 
-    assigned_tiles = set()
-    assigned_tiles.add(rot)
+    # -------------------------------------------------------
+    # 1) CALCULA CUSTO DE COMUNICAÇÃO POR TAREFA
+    # -------------------------------------------------------
+    custos = {}
+    for linha in range(len(adj_matriz)):
+        soma = sum(adj_matriz[linha])
+        conectados = [i for i, v in enumerate(adj_matriz[linha]) if v != 0]
+        custos[str(linha)] = conectados + [soma]
 
-    # Atribui a primeira tarefa ao núcleo inicial
-    primeira_tarefa = list(custos_ordenado.keys())[0]
-    cores_noc[rot[0]][rot[1]] = int(primeira_tarefa)
-    custos_ordenado[primeira_tarefa].pop()
-    tarefas_adicionadas = [int(primeira_tarefa)]
+    # ordena do maior custo para o menor
+    custos_ordenado = dict(sorted(custos.items(), key=lambda x: x[1][-1], reverse=True))
 
-    # Atribui as tarefas conectadas próximas à primeira tarefa
-    for tarefa in custos_ordenado[primeira_tarefa]:
-        nearby_tiles = [
-            (rot[0] + dx, rot[1] + dy)
-            for dx in range(-1, 2)
-            for dy in range(-1, 2)
-            if (0 <= rot[0] + dx < n) and (0 <= rot[1] + dy < n) and (rot[0] + dx, rot[1] + dy) not in assigned_tiles
-        ]
+    # -------------------------------------------------------
+    # 2) POSIÇÃO INICIAL
+    # -------------------------------------------------------
+    rot = (random.randint(0, n - 1), random.randint(0, n - 1))
+    assigned_tiles = {rot}
 
-        if nearby_tiles:
-            tarefa_tile = random.choice(nearby_tiles)
-            cores_noc[tarefa_tile[0]][tarefa_tile[1]] = int(tarefa)
-            tarefas_adicionadas.append(tarefa)
-            assigned_tiles.add(tarefa_tile)
-        else:
-            # Expande a busca para tiles mais distantes
-            expanded_tiles = [
-                (rot[0] + dx, rot[1] + dy)
-                for dx in range(-2, 3)
-                for dy in range(-2, 3)
-                if (0 <= rot[0] + dx < n) and (0 <= rot[1] + dy < n) and (rot[0] + dx, rot[1] + dy) not in assigned_tiles
-            ]
+    primeira_tarefa = int(list(custos_ordenado.keys())[0])
+    cores_noc[rot[0]][rot[1]] = primeira_tarefa
+    custos_ordenado[str(primeira_tarefa)].pop()
+    tarefas_adicionadas = {primeira_tarefa}
 
-            if expanded_tiles:
-                tarefa_tile = random.choice(expanded_tiles)
-                cores_noc[tarefa_tile[0]][tarefa_tile[1]] = int(tarefa)
-                tarefas_adicionadas.append(tarefa)
-                assigned_tiles.add(tarefa_tile)
-    del custos_ordenado[primeira_tarefa]
+    # -------------------------------------------------------
+    # 3) INSERE TAREFAS DO CLUSTER INICIAL
+    # -------------------------------------------------------
+    for tarefa in custos_ordenado[str(primeira_tarefa)]:
+        if tarefa in tarefas_adicionadas:
+            continue
 
+        livres = tiles_livres(cores_noc)
+        if not livres:
+            break
 
-    # Continua o mapeamento para as demais tarefas
-    while list(custos_ordenado.keys()) != []:
-        
-        for key in list(custos_ordenado.keys()):
-            if verificar_elementos_zero(custos_ordenado):
-                
+        tile = random.choice(livres)
+        cores_noc[tile[0]][tile[1]] = int(tarefa)
+        tarefas_adicionadas.add(int(tarefa))
+        assigned_tiles.add(tile)
 
-                # Adiciona tarefas restantes de forma aleatória
-                remaining_tiles =  [
-                        (px + dx, py + dy)
-                        for (px, py) in assigned_tiles
-                        for dx in range(-1, 2)
-                        for dy in range(-1, 2)
-                        if (0 <= px + dx < n) and (0 <= py + dy < n) and (px + dx, py + dy) not in assigned_tiles
-                    ]
-                
-                for tarefa in custos_ordenado.keys():
-                    if not tarefa_esta_no_noc(tarefa,n,cores_noc):
-                        if remaining_tiles:
-                            tarefa_tile = random.choice(remaining_tiles)
-                            cores_noc[tarefa_tile[0]][tarefa_tile[1]] = int(tarefa)
-                            assigned_tiles.add(tarefa_tile)
-                            remaining_tiles.remove(tarefa_tile)
-                custos_ordenado.clear()
+    del custos_ordenado[str(primeira_tarefa)]
+
+    # -------------------------------------------------------
+    # 4) INSERE RESTANTE DOS CLUSTERS
+    # -------------------------------------------------------
+    for key, valores in list(custos_ordenado.items()):
+
+        tarefa_principal = int(key)
+        if tarefa_principal not in tarefas_adicionadas:
+            livres = tiles_livres(cores_noc)
+            if not livres:
+                break
+            tile = random.choice(livres)
+            cores_noc[tile[0]][tile[1]] = tarefa_principal
+            tarefas_adicionadas.add(tarefa_principal)
+            assigned_tiles.add(tile)
+
+        # adiciona conectadas
+        for tarefa in valores[:-1]:
+            tarefa = int(tarefa)
+            if tarefa in tarefas_adicionadas:
+                continue
+
+            livres = tiles_livres(cores_noc)
+            if not livres:
                 break
 
-            if any(custo in tarefas_adicionadas for custo in custos_ordenado[key][0:-1]):
-                # Verifica se a tarefa principal do cluster está mapeada
-                
-                tarefa_principal = int(key)
-                if not tarefa_esta_no_noc(tarefa_principal,n,cores_noc):
-                    tarefas_adicionadas.append(tarefa_principal)
-                    nearby_tiles = [
-                        (px + dx, py + dy)
-                        for (px, py) in assigned_tiles
-                        for dx in range(-1, 2)
-                        for dy in range(-1, 2)
-                        if (0 <= px + dx < n) and (0 <= py + dy < n) and (px + dx, py + dy) not in assigned_tiles
-                    ]
+            tile = random.choice(livres)
+            cores_noc[tile[0]][tile[1]] = tarefa
+            tarefas_adicionadas.add(tarefa)
+            assigned_tiles.add(tile)
 
-                    if nearby_tiles:
-                        tarefa_tile = random.choice(nearby_tiles)
-                        cores_noc[tarefa_tile[0]][tarefa_tile[1]] = tarefa_principal
-                        assigned_tiles.add(tarefa_tile)
-                    else:
-                        # Expande a busca para tiles mais distantes
-                        expanded_tiles = [
-                            (px + dx, py + dy)
-                            for (px, py) in assigned_tiles
-                            for dx in range(-2, 3)
-                            for dy in range(-2, 3)
-                            if (0 <= px + dx < n) and (0 <= py + dy < n) and (px + dx, py + dy) not in assigned_tiles
-                        ]
+        del custos_ordenado[key]
 
-                        if expanded_tiles:
-                            tarefa_tile = random.choice(expanded_tiles)
-                            cores_noc[tarefa_tile[0]][tarefa_tile[1]] = tarefa_principal
-                            assigned_tiles.add(tarefa_tile)
-                
+    # -------------------------------------------------------
+    # 5) CORREÇÃO FINAL (REMOVE DUPLICADOS E PREENCHE FALTANDO)
+    # -------------------------------------------------------
+    total_tarefas = len(adj_matriz)
+    mapa = [cores_noc[i][j] for i in range(n) for j in range(n)]
 
+    # remove duplicados mantendo o primeiro
+    vistos = set()
+    duplicados = []
+    for t in mapa:
+        if t in vistos:
+            duplicados.append(t)
+        else:
+            vistos.add(t)
 
-                if all(custo in tarefas_adicionadas for custo in custos_ordenado[key][0:-1]):
-                    del custos_ordenado[key]
-                else:
-                    for tarefa in custos_ordenado[key][0:-1]:
-                        if not tarefa_esta_no_noc(tarefa_principal,n,cores_noc):
-                            tarefas_adicionadas.append(tarefa)
-                            nearby_tiles = [
-                                (px + dx, py + dy)
-                                for (px, py) in assigned_tiles
-                                for dx in range(-1, 2)
-                                for dy in range(-1, 2)
-                                if (0 <= px + dx < n) and (0 <= py + dy < n) and (px + dx, py + dy) not in assigned_tiles
-                            ]
-
-                            if nearby_tiles:
-                                tarefa_tile = random.choice(nearby_tiles)
-                                cores_noc[tarefa_tile[0]][tarefa_tile[1]] = int(tarefa)
-                                assigned_tiles.add(tarefa_tile)
-                            else:
-                                # Expande a busca para tiles mais distantes
-                                expanded_tiles = [
-                                    (px + dx, py + dy)
-                                    for (px, py) in assigned_tiles
-                                    for dx in range(-2, 3)
-                                    for dy in range(-2, 3)
-                                    if (0 <= px + dx < n) and (0 <= py + dy < n) and (px + dx, py + dy) not in assigned_tiles
-                                ]
-
-                                if expanded_tiles:
-                                    tarefa_tile = random.choice(expanded_tiles)
-                                    cores_noc[tarefa_tile[0]][tarefa_tile[1]] = int(tarefa)
-                                    assigned_tiles.add(tarefa_tile)
-                    del custos_ordenado[key]
-            else:
-                
-                 # Adiciona o cluster de maior valor em uma posição próxima às já mapeadas
-                cluster_valor = max(custos_ordenado.items(), key=lambda item: item[1][-1])
-                cluster_key = int(cluster_valor[0])
-                nearby_tiles = [
-                    (px + dx, py + dy)
-                    for (px, py) in assigned_tiles
-                    for dx in range(-1, 2)
-                    for dy in range(-1, 2)
-                    if (0 <= px + dx < n) and (0 <= py + dy < n) and (px + dx, py + dy) not in assigned_tiles
-                    ]
-
-                if nearby_tiles and not tarefa_esta_no_noc(cluster_key,n,cores_noc):
-                    tarefa_tile = random.choice(nearby_tiles)
-                    cores_noc[tarefa_tile[0]][tarefa_tile[1]] = cluster_key
-                    assigned_tiles.add(tarefa_tile)
-
-                                   
-                    for tarefa in custos_ordenado[str(cluster_key)][:-1]:
-                        nearby_tiles = [
-                            (px + dx, py + dy)
-                            for (px, py) in assigned_tiles
-                            for dx in range(-1, 2)
-                            for dy in range(-1, 2)
-                            if (0 <= px + dx < n) and (0 <= py + dy < n) and (px + dx, py + dy) not in assigned_tiles
-                        ]
-
-                        if nearby_tiles:
-                            tarefa_tile = random.choice(nearby_tiles)
-                            cores_noc[tarefa_tile[0]][tarefa_tile[1]] = int(tarefa)
-                            assigned_tiles.add(tarefa_tile)
-                else:
-                    for tarefa in custos_ordenado[str(cluster_key)][:-1]:
-                        nearby_tiles = [
-                            (px + dx, py + dy)
-                            for (px, py) in assigned_tiles
-                            for dx in range(-1, 2)
-                            for dy in range(-1, 2)
-                            if (0 <= px + dx < n) and (0 <= py + dy < n) and (px + dx, py + dy) not in assigned_tiles
-                        ]
-
-                        if nearby_tiles:
-                            tarefa_tile = random.choice(nearby_tiles)
-                            cores_noc[tarefa_tile[0]][tarefa_tile[1]] = int(tarefa)
-                            assigned_tiles.add(tarefa_tile)
-                del custos_ordenado[str(cluster_key)]
-                        
     return cores_noc
 
 def tarefa_esta_no_noc(tarefa,n,cores_noc):

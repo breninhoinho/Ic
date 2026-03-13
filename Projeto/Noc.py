@@ -232,8 +232,13 @@ class Roteador:
                 self.total_pacotes_criados += 1
             pacote = self.buffers[buffer_pacote_para_enviar].pop(0) # seleciona o primeiro pacote do buffer selecionado
         
-        roteador_destino, buffer_destino = self.seleciona_roteador_destino(pacote) #seleciona qual roteador de destino do pacote    
+        result = self.seleciona_roteador_destino(pacote)  #seleciona qual roteador de destino do pacote
+        if result is None:
+            # log unexpected None and treat as no movement
+            print(f"[WARN] seleciona_roteador_destino retornou None para pacote {pacote}")
+            return pacote.id, "Nada"
 
+        roteador_destino, buffer_destino = result
         if roteador_destino == self: 
             self.buffers["Pacotes_entregues"].append(pacote)
             pacote.tempo_chegada = self.tempo
@@ -241,6 +246,9 @@ class Roteador:
             return pacote.id, "Processador"
 
         else:
+            # garante que buffer_destino seja uma string válida
+            if not buffer_destino:
+                buffer_destino = "Processador"
             roteador_destino.buffers["Pacotes_recebidos"].append((pacote,buffer_destino))
             return pacote.id, buffer_destino
         
@@ -303,7 +311,20 @@ class Roteador:
             if delta_x < 0:
                 return self.noc.matriz_roteadores[x_atual-1][y_atual] , "Sul"#.buffers["Sul"]
         elif self.noc.roteamento == "XYX":
-            ...
+            # rotas XYX: mover primeiro em X até alinhar, depois em Y; volta em X se necessário
+            if delta_x == 0 and delta_y == 0:
+                return self, "Nada"
+            # se ainda houver deslocamento em X, prioriza x
+            if delta_x != 0:
+                if delta_x > 0:
+                    return self.noc.matriz_roteadores[x_atual+1][y_atual], "Norte"
+                else:
+                    return self.noc.matriz_roteadores[x_atual-1][y_atual], "Sul"
+            # x está alinhado, mover em Y
+            if delta_y > 0:
+                return self.noc.matriz_roteadores[x_atual][y_atual+1], "Oeste"
+            elif delta_y < 0:
+                return self.noc.matriz_roteadores[x_atual][y_atual-1], "Leste"
         elif self.noc.roteamento == "Negative First":
             if delta_x == 0 and delta_y == 0:
                 return self, "Nada"
@@ -319,6 +340,8 @@ class Roteador:
                 return self.noc.matriz_roteadores[x_atual][y_atual+1] , "Oeste" #.buffers["Oeste"]
             elif delta_x > 0:
                 return self.noc.matriz_roteadores[x_atual+1][y_atual] , "Norte"#.buffers["Norte"]
+        # se nenhum caso anterior for disparado (roteamento desconhecido ou cálculo inesperado), captura
+        return self, "Nada"
 
         
 class Pacote():
